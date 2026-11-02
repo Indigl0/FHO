@@ -9,11 +9,14 @@ interface PalletItem {
 
 export default function ArchivosPlanosView() {
   const [tipoArchivo, setTipoArchivo] = useState<'INS' | 'DES'>('INS');
-  const [establecimiento, setEstablecimiento] = useState('');
+  
+  // Valores fijos y por defecto solicitados
+  const establecimiento = '0984';
+  const codigoEspecie = '10314200';
+  
   const [numeroSolicitud, setNumeroSolicitud] = useState('');
-  const [codigoEspecie, setCodigoEspecie] = useState('');
   const [paisDestino1, setPaisDestino1] = useState('');
-  const [paisDestino2, setPaisDestino2] = useState('000');
+  const [paisDestino2, setPaisDestino2] = useState('520'); // Por defecto 520, editable
   const [fecha, setFecha] = useState(() => {
     const d = new Date();
     return d.toISOString().slice(0, 10).replace(/-/g, '');
@@ -44,10 +47,6 @@ export default function ArchivosPlanosView() {
   const generarArchivoPlano = () => {
     setErrorMsg(null);
 
-    if (!establecimiento) {
-      setErrorMsg('Debe ingresar el número del establecimiento.');
-      return;
-    }
     if (pallets.length === 0 || pallets.some(p => !p.folio || !p.cajas)) {
       setErrorMsg('Debe completar el folio y la cantidad de cajas para todos los pallets.');
       return;
@@ -66,7 +65,7 @@ export default function ArchivosPlanosView() {
       const totalPallets4 = padLeft(String(pallets.length), 4);
 
       headerLine = `${sif5}${est4}${esp8}${p1}${p2}${fecha8}${totalPallets4}`;
-      fileName = `${est4}${sif5}.INS`; // Nomenclatura oficial .INS[span_1](start_span)[span_1](end_span)
+      fileName = `${est4}${sif5}.INS`;
     } else {
       const est4 = padLeft(establecimiento, 4);
       const planilla5 = padLeft(numeroSolicitud, 5);
@@ -75,7 +74,7 @@ export default function ArchivosPlanosView() {
       const totalPallets4 = padLeft(String(pallets.length), 4);
 
       headerLine = `${est4}${p1}${fecha8}${totalPallets4}`;
-      fileName = `${est4}${planilla5}.DES`; // Nomenclatura oficial .DES
+      fileName = `${est4}${planilla5}.DES`;
     }
 
     const internalLines = pallets.map((p) => {
@@ -88,7 +87,6 @@ export default function ArchivosPlanosView() {
       return `${folio10}${cajas4}`;
     });
 
-    // Cierre obligatorio por norma SAG D-PA-EA-021: caracteres && y salto de línea final[span_2](start_span)[span_2](end_span)
     const fileContent = [headerLine, ...internalLines, '&&', ''].join('\r\n');
 
     const blob = new Blob([fileContent], { type: 'text/plain;charset=utf-8' });
@@ -144,14 +142,14 @@ export default function ArchivosPlanosView() {
         <div className="bg-white rounded-2xl shadow-sm border border-gray-200 p-6 space-y-4 md:col-span-2">
           <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-2">2. Datos de Encabezado</h3>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {/* Establecimiento Fijo */}
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">N° Establecimiento (4 dígitos)</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">N° Establecimiento (Fijo)</label>
               <input
                 type="text"
-                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="Ej. 3103"
+                disabled
+                className="w-full rounded-xl border border-gray-200 bg-gray-100 p-2.5 text-sm text-gray-600 cursor-not-allowed font-mono font-bold"
                 value={establecimiento}
-                onChange={(e) => setEstablecimiento(e.target.value)}
               />
             </div>
 
@@ -168,14 +166,14 @@ export default function ArchivosPlanosView() {
               />
             </div>
 
+            {/* Código Especie Fijo */}
             <div>
-              <label className="block text-xs font-semibold text-gray-600 mb-1">Código de Especie (8 dígitos)</label>
+              <label className="block text-xs font-semibold text-gray-600 mb-1">Código de Especie (Fijo)</label>
               <input
                 type="text"
-                className="w-full rounded-xl border border-gray-300 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="Ej. 00218000"
+                disabled
+                className="w-full rounded-xl border border-gray-200 bg-gray-100 p-2.5 text-sm text-gray-600 cursor-not-allowed font-mono font-bold"
                 value={codigoEspecie}
-                onChange={(e) => setCodigoEspecie(e.target.value)}
               />
             </div>
 
@@ -190,12 +188,12 @@ export default function ArchivosPlanosView() {
               />
             </div>
 
+            {/* Código País Destino (2) con 520 por defecto pero editable */}
             <div>
               <label className="block text-xs font-semibold text-gray-600 mb-1">Código País Destino (2)</label>
               <input
                 type="text"
                 className="w-full rounded-xl border border-gray-300 p-2.5 text-sm outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
-                placeholder="000"
                 value={paisDestino2}
                 onChange={(e) => setPaisDestino2(e.target.value)}
               />
