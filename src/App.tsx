@@ -6,6 +6,13 @@ import GranelFHO from './components/GranelFHO';
 import Consolidado from './components/ConsolidadoView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
 
+// ==========================================
+// CONFIGURACIÓN DE ACCESO DE OPERADOR
+// ==========================================
+// Cambia este correo por el del usuario que solo 
+// debe tener acceso al módulo de Archivos Planos (SAG)
+const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
+
 function App() {
   const [view, setView] = useState<ViewKey>('consolidado'); // Por defecto arranca en consolidado para visitantes
   const [records, setRecords] = useState<ProcessRecord[]>([]);
@@ -18,6 +25,9 @@ function App() {
   const [passwordInput, setPasswordInput] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  // Determina si el usuario logueado es el operador exclusivo de archivos planos
+  const isOperator = userEmail?.toLowerCase() === OPERATOR_EMAIL.toLowerCase();
 
   useEffect(() => {
     fetchRecords();
@@ -32,9 +42,15 @@ function App() {
     // Verificación de sesión protegida contra bloqueos de red
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session?.user) {
+        const email = session.user.email || null;
         setUserRole('admin');
-        setUserEmail(session.user.email || null);
-        setView('granel');
+        setUserEmail(email);
+        // Si es el operador, va directo a planos; si es admin, a granel
+        if (email?.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+          setView('planos');
+        } else {
+          setView('granel');
+        }
       }
     }).catch((err) => {
       console.warn('No se pudo verificar la sesión inicial por red:', err);
@@ -42,8 +58,12 @@ function App() {
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       if (session?.user) {
+        const email = session.user.email || null;
         setUserRole('admin');
-        setUserEmail(session.user.email || null);
+        setUserEmail(email);
+        if (email?.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+          setView('planos');
+        }
       } else {
         setUserRole('viewer');
         setUserEmail(null);
@@ -106,7 +126,7 @@ function App() {
     setErrorMsg('');
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data, error } = await supabase.auth.signInWithPassword({
         email: emailInput,
         password: passwordInput,
       });
@@ -116,7 +136,14 @@ function App() {
       setShowLoginModal(false);
       setEmailInput('');
       setPasswordInput('');
-      setView('granel');
+
+      // Redirección inteligente según el correo ingresado
+      const loggedEmail = data.user?.email || emailInput;
+      if (loggedEmail.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+        setView('planos');
+      } else {
+        setView('granel');
+      }
     } catch (err: any) {
       setErrorMsg(err.message || 'Correo o contraseña incorrectos');
     } finally {
@@ -172,7 +199,9 @@ function App() {
                 <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
                   <Shield className="h-4 w-4 text-emerald-600" />
                   <div className="text-left">
-                    <p className="text-[10px] text-emerald-600 font-medium">Administrador</p>
+                    <p className="text-[10px] text-emerald-600 font-medium">
+                      {isOperator ? 'Operador Archivos SAG' : 'Administrador'}
+                    </p>
                     <p className="text-xs font-bold text-emerald-900">{userEmail}</p>
                   </div>
                   <button
@@ -201,12 +230,16 @@ function App() {
             <nav className="flex gap-1">
               {userRole === 'admin' && (
                 <>
-                  <TabButton
-                    active={view === 'granel'}
-                    onClick={() => setView('granel')}
-                    icon={<Table2 className="h-4 w-4" />}
-                    label="Granel FHO"
-                  />
+                  {/* Granel FHO solo visible para el Administrador principal */}
+                  {!isOperator && (
+                    <TabButton
+                      active={view === 'granel'}
+                      onClick={() => setView('granel')}
+                      icon={<Table2 className="h-4 w-4" />}
+                      label="Granel FHO"
+                    />
+                  )}
+                  {/* Archivos SAG visible para el Admin y el Operador autorizado */}
                   <TabButton
                     active={view === 'planos'}
                     onClick={() => setView('planos')}
@@ -226,7 +259,7 @@ function App() {
         </header>
 
         <main className="w-full px-6 py-6">
-          {userRole === 'admin' && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
+          {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <Consolidado records={records} />}
         </main>
@@ -240,8 +273,8 @@ function App() {
                 <Shield className="h-5 w-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-gray-900">Acceso Administrador</h3>
-                <p className="text-xs text-gray-500">Ingresa con tu cuenta de Supabase</p>
+                <h3 className="text-sm font-bold text-gray-900">Iniciar Sesión</h3>
+                <p className="text-xs text-gray-500">Ingresa con tus credenciales de Supabase</p>
               </div>
             </div>
 
