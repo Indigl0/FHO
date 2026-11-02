@@ -112,7 +112,7 @@ export default function ConsolidadoView({ records }: Props) {
                   <td class="center">${formatDate(r.fechaRecepcion)}</td>
                   <td class="center">${formatDate(r.fechaProduccion)}</td>
                   <td class="center">${r.nProceso || ''}</td>
-                  <td class="center bold" style="background-color: #f0f9ff; color: #0369a1;">${r.guiaRecepcion || '—'}</td>
+                  <td class="center bold" style="background-color: #e0f2fe; color: #0369a1;">${r.guiaRecepcion || '—'}</td>
                   <td class="num">${num(r.recepcionKg)}</td>
                   <td class="text bold">${r.variedad || ''}</td>
                   <td class="num">${procKg}</td>
@@ -271,7 +271,8 @@ export default function ConsolidadoView({ records }: Props) {
               <th className={thCompactCls}>F. Prod.</th>
               <th className={thCompactCls}>N° Proc.</th>
               
-              <th className="px-2 py-2.5 font-bold text-sky-900 whitespace-nowrap text-[11px] bg-sky-100 border-r border-sky-200 text-center">
+              {/* N° Guía con un tono más notorio y destacado */}
+              <th className="px-2 py-2.5 font-extrabold text-sky-950 whitespace-nowrap text-[11px] bg-sky-200 border-r border-sky-300 text-center shadow-inner">
                 N° Guía
               </th>
 
@@ -285,9 +286,7 @@ export default function ConsolidadoView({ records }: Props) {
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,6 kg</th>
 
-              {/* Columna modificada a Merma kg */}
               <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-right">Merma kg</th>
-              
               <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
             </tr>
           </thead>
@@ -314,7 +313,8 @@ export default function ConsolidadoView({ records }: Props) {
                     <td className={tdCls}>{formatDate(r.fechaProduccion)}</td>
                     <td className={tdCls}>{r.nProceso}</td>
                     
-                    <td className="px-2.5 py-2 font-semibold text-sky-800 bg-sky-50/50 whitespace-nowrap text-[11px] border-r border-sky-100 text-center">
+                    {/* Celdas de N° Guía con mayor contraste y visibilidad */}
+                    <td className="px-2.5 py-2 font-bold text-sky-950 bg-sky-100/90 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
                       {r.guiaRecepcion || '—'}
                     </td>
                     
