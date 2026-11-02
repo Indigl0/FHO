@@ -332,8 +332,11 @@ function App() {
       )}
 
       <footer className="border-t border-gray-200 bg-white py-4 px-6">
-        <div className="text-center text-xs text-gray-400">
-          ARÁNDANOS — Sistema de Control y Cuadratura · Sincronizado en tiempo real con Supabase
+        <div className="flex flex-col items-center justify-center gap-1 text-center text-xs text-gray-400">
+          <p>ARÁNDANOS — Sistema de Control y Cuadratura · Sincronizado en tiempo real con Supabase</p>
+          <p className="text-[11px] font-medium text-gray-500">
+            Creado y Desarrollado por <span className="font-bold text-slate-700">Felipe Ibarra</span>
+          </p>
         </div>
       </footer>
     </div>
