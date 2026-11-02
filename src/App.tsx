@@ -9,12 +9,10 @@ import ArchivosPlanosView from './components/ArchivosPlanosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESO DE OPERADOR
 // ==========================================
-// Cambia este correo por el del usuario que solo 
-// debe tener acceso al módulo de Archivos Planos (SAG)
 const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
 
 function App() {
-  const [view, setView] = useState<ViewKey>('consolidado'); // Por defecto arranca en consolidado para visitantes
+  const [view, setView] = useState<ViewKey>('consolidado');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -26,7 +24,6 @@ function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  // Determina si el usuario logueado es el operador exclusivo de archivos planos
   const isOperator = userEmail?.toLowerCase() === OPERATOR_EMAIL.toLowerCase();
 
   useEffect(() => {
@@ -39,13 +36,11 @@ function App() {
       })
       .subscribe();
 
-    // Verificación de sesión protegida contra bloqueos de red
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session?.user) {
         const email = session.user.email || null;
         setUserRole('admin');
         setUserEmail(email);
-        // Si es el operador, va directo a planos; si es admin, a granel
         if (email?.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
           setView('planos');
         } else {
@@ -137,7 +132,6 @@ function App() {
       setEmailInput('');
       setPasswordInput('');
 
-      // Redirección inteligente según el correo ingresado
       const loggedEmail = data.user?.email || emailInput;
       if (loggedEmail.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
         setView('planos');
@@ -172,7 +166,6 @@ function App() {
       <div>
         <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
           <div className="flex w-full items-center justify-between px-6 py-3">
-            {/* Logo Vectorial Profesional Embebido */}
             <div className="flex items-center gap-3.5">
               <div className="flex h-12 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-200 p-1.5">
                 <svg viewBox="0 0 100 100" className="h-full w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -231,34 +224,33 @@ function App() {
             </div>
           </div>
 
+          {/* Menú de Navegación Reordenado */}
           <div className="px-6">
             <nav className="flex gap-1">
-              {userRole === 'admin' && (
-                <>
-                  {/* Granel FHO solo visible para el Administrador principal */}
-                  {!isOperator && (
-                    <TabButton
-                      active={view === 'granel'}
-                      onClick={() => setView('granel')}
-                      icon={<Table2 className="h-4 w-4" />}
-                      label="Granel FHO"
-                    />
-                  )}
-                  {/* Archivos SAG visible para el Admin y el Operador autorizado */}
-                  <TabButton
-                    active={view === 'planos'}
-                    onClick={() => setView('planos')}
-                    icon={<FileText className="h-4 w-4" />}
-                    label="Archivos SAG"
-                  />
-                </>
+              {userRole === 'admin' && !isOperator && (
+                <TabButton
+                  active={view === 'granel'}
+                  onClick={() => setView('granel')}
+                  icon={<Table2 className="h-4 w-4" />}
+                  label="Granel FHO"
+                />
               )}
+              
               <TabButton
                 active={view === 'consolidado'}
                 onClick={() => setView('consolidado')}
                 icon={<BarChart3 className="h-4 w-4" />}
                 label="Consolidado Procesos"
               />
+
+              {userRole === 'admin' && (
+                <TabButton
+                  active={view === 'planos'}
+                  onClick={() => setView('planos')}
+                  icon={<FileText className="h-4 w-4" />}
+                  label="Archivos SAG"
+                />
+              )}
             </nav>
           </div>
         </header>
