@@ -150,6 +150,17 @@ export default function ConsolidadoView({ records }: Props) {
   const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
   const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
 
+  // Agrupación automática por Mes de Producción para el desglose
+  const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
+    const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
+    if (!acc[mes]) {
+      acc[mes] = { recep: 0, proc: 0 };
+    }
+    acc[mes].recep += num(r.recepcionKg);
+    acc[mes].proc += num(r.procesadoKg);
+    return acc;
+  }, {});
+
   return (
     <div className="space-y-6 w-full max-w-full">
       {/* Título Principal: Monitoreo de Fruta a Granel FHO */}
@@ -168,9 +179,9 @@ export default function ConsolidadoView({ records }: Props) {
       {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
-        {/* Recuadro 1: Recepción, Procesado y % Exportación */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center justify-between mb-6 border-b border-white/40 pb-3">
+        {/* Recuadro 1: Recepción, Procesado, % Exportación + Desglose Mensual Automático */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
+          <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
               <BarChart2 className="h-4 w-4 text-orange-100" /> Resumen Operativo de Procesos
             </span>
@@ -201,6 +212,32 @@ export default function ConsolidadoView({ records }: Props) {
               </p>
             </div>
           </div>
+
+          {/* Desglose Automático por Mes */}
+          {Object.keys(monthlyStats).length > 0 && (
+            <div className="border-t border-white/40 pt-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-orange-100 mb-3 text-center">
+                📊 Totales por Mes de Producción
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Object.entries(monthlyStats).map(([mes, stats]) => (
+                  <div key={mes} className="bg-black/15 rounded-2xl p-3 text-center border border-white/25 shadow-sm">
+                    <p className="text-xs font-black uppercase text-white tracking-wide mb-1.5 underline decoration-orange-300 underline-offset-4">{mes}</p>
+                    <div className="flex justify-around text-xs text-orange-100 divide-x divide-white/30">
+                      <div className="px-1 text-center">
+                        <span className="block text-[10px] uppercase opacity-80 font-semibold">Recep.</span>
+                        <span className="font-bold text-white text-sm">{fmtKg(stats.recep)} kg</span>
+                      </div>
+                      <div className="px-1 pl-2 text-center">
+                        <span className="block text-[10px] uppercase opacity-80 font-semibold">Proc.</span>
+                        <span className="font-bold text-white text-sm">{fmtKg(stats.proc)} kg</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
         {/* Recuadro 2: Embalado Total, Bulk 3,0 kg y Bulk 3,6 kg */}
@@ -271,7 +308,7 @@ export default function ConsolidadoView({ records }: Props) {
               <th className={thCompactCls}>F. Prod.</th>
               <th className={thCompactCls}>N° Proc.</th>
               
-              {/* N° Guía con un tono más notorio y destacado */}
+              {/* N° Guía destacado */}
               <th className="px-2 py-2.5 font-extrabold text-sky-950 whitespace-nowrap text-[11px] bg-sky-200 border-r border-sky-300 text-center shadow-inner">
                 N° Guía
               </th>
@@ -282,7 +319,6 @@ export default function ConsolidadoView({ records }: Props) {
 
               <th className="px-2 py-2.5 font-semibold text-emerald-900 whitespace-nowrap text-[11px] bg-emerald-50 border-r border-emerald-200 text-right">Embalado kg</th>
               
-              {/* Columnas de Formato de Embalaje (Cajas) */}
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,6 kg</th>
 
@@ -313,7 +349,6 @@ export default function ConsolidadoView({ records }: Props) {
                     <td className={tdCls}>{formatDate(r.fechaProduccion)}</td>
                     <td className={tdCls}>{r.nProceso}</td>
                     
-                    {/* Celdas de N° Guía con mayor contraste y visibilidad */}
                     <td className="px-2.5 py-2 font-bold text-sky-950 bg-sky-100/90 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
                       {r.guiaRecepcion || '—'}
                     </td>
@@ -324,19 +359,16 @@ export default function ConsolidadoView({ records }: Props) {
                     
                     <td className={`${tdNum} font-medium text-emerald-800 bg-emerald-50/25`}>{fmtKg(c.embaladoKg)}</td>
                     
-                    {/* Cajas Bulk 3,0 kg */}
                     <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
                       {fmtBoxes(cajas3)}
                     </td>
 
-                    {/* Cajas Bulk 3,6 kg */}
                     <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
                       {fmtBoxes(cajas36)}
                     </td>
 
                     <td className={`${tdNum} font-medium text-rose-800 bg-rose-50/25`}>{fmtKg(num(r.mermaKg))}</td>
                     
-                    {/* Observaciones con Tooltip Flotante */}
                     <td className={`${tdCls} text-slate-600 max-w-[180px] truncate relative group cursor-pointer`}>
                       {r.observaciones ? (
                         <div className="flex items-center gap-1.5">
