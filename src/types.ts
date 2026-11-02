@@ -38,4 +38,4 @@ export interface ComputedRecord {
   pctMerma: number;
 }
 
-export type ViewKey = 'granel' | 'consolidado';
+export type ViewKey = 'granel' | 'consolidado' | 'planos';

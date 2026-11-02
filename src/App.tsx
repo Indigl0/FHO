@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2 } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import GranelFHO from './components/GranelFHO';
 import Consolidado from './components/ConsolidadoView';
+import ArchivosPlanosView from './components/ArchivosPlanosView';
 
 function App() {
   const [view, setView] = useState<ViewKey>('consolidado'); // Por defecto arranca en consolidado para visitantes
@@ -58,7 +59,6 @@ function App() {
 
   const fetchRecords = async () => {
     try {
-      // Orden ascendente: el primer registro ingresado se queda arriba y los nuevos van hacia abajo
       const { data, error } = await supabase
         .from('process_records')
         .select('*')
@@ -200,12 +200,20 @@ function App() {
           <div className="px-6">
             <nav className="flex gap-1">
               {userRole === 'admin' && (
-                <TabButton
-                  active={view === 'granel'}
-                  onClick={() => setView('granel')}
-                  icon={<Table2 className="h-4 w-4" />}
-                  label="Granel FHO"
-                />
+                <>
+                  <TabButton
+                    active={view === 'granel'}
+                    onClick={() => setView('granel')}
+                    icon={<Table2 className="h-4 w-4" />}
+                    label="Granel FHO"
+                  />
+                  <TabButton
+                    active={view === 'planos'}
+                    onClick={() => setView('planos')}
+                    icon={<FileText className="h-4 w-4" />}
+                    label="Archivos SAG"
+                  />
+                </>
               )}
               <TabButton
                 active={view === 'consolidado'}
@@ -219,6 +227,7 @@ function App() {
 
         <main className="w-full px-6 py-6">
           {userRole === 'admin' && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
+          {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <Consolidado records={records} />}
         </main>
       </div>
