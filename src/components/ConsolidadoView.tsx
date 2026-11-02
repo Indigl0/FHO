@@ -150,7 +150,7 @@ export default function ConsolidadoView({ records }: Props) {
   const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
   const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
 
-  // Agrupación automática por Mes de Producción (Recepción y Procesado)
+  // Agrupación automática por Mes de Producción
   const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
     const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
     if (!acc[mes]) {
@@ -161,7 +161,6 @@ export default function ConsolidadoView({ records }: Props) {
     return acc;
   }, {});
 
-  // Agrupación automática por Mes de Producción (Embalado y Cajas)
   const monthlyProductionStats = filtered.reduce((acc: Record<string, { embalado: number; cajas3: number; cajas36: number }>, r) => {
     const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
     if (!acc[mes]) {
@@ -175,7 +174,7 @@ export default function ConsolidadoView({ records }: Props) {
 
   return (
     <div className="space-y-6 w-full max-w-full">
-      {/* Título Principal: Monitoreo de Fruta a Granel FHO */}
+      {/* Título Principal */}
       <div className="flex flex-col items-center justify-center text-center space-y-1.5 py-4 border-b border-gray-200/85 mb-2">
         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
           <BarChart2 className="h-3.5 w-3.5" /> Monitoreo y Cuadratura en Línea
@@ -191,7 +190,7 @@ export default function ConsolidadoView({ records }: Props) {
       {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
-        {/* Recuadro 1: Recepción, Procesado, % Exportación + Desglose Mensual */}
+        {/* Recuadro 1: Naranja */}
         <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
@@ -220,25 +219,19 @@ export default function ConsolidadoView({ records }: Props) {
             </div>
           </div>
 
-          {/* Desglose Automático por Mes (Naranja) */}
+          {/* Desglose en Filas Horizontales Limpias */}
           {Object.keys(monthlyStats).length > 0 && (
-            <div className="border-t border-white/40 pt-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-100 mb-3 text-center">
+            <div className="border-t border-white/40 pt-4 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-orange-100 text-center mb-2">
                 📊 Totales por Mes de Producción
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                 {Object.entries(monthlyStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl p-3 text-center border border-white/25 shadow-sm">
-                    <p className="text-xs font-black uppercase text-white tracking-wide mb-1.5 underline decoration-orange-300 underline-offset-4">{mes}</p>
-                    <div className="flex justify-around text-xs text-orange-100 divide-x divide-white/30">
-                      <div className="px-1 text-center">
-                        <span className="block text-[10px] uppercase opacity-80 font-semibold">Recep.</span>
-                        <span className="font-bold text-white text-sm">{fmtKg(stats.recep)} kg</span>
-                      </div>
-                      <div className="px-1 pl-2 text-center">
-                        <span className="block text-[10px] uppercase opacity-80 font-semibold">Proc.</span>
-                        <span className="font-bold text-white text-sm">{fmtKg(stats.proc)} kg</span>
-                      </div>
+                  <div key={mes} className="bg-black/15 rounded-xl px-3 py-2 flex items-center justify-between border border-white/20 text-xs text-orange-100">
+                    <span className="font-extrabold uppercase text-white tracking-wide">{mes}</span>
+                    <div className="flex gap-4">
+                      <span>Recep: <strong className="text-white">{fmtKg(stats.recep)} kg</strong></span>
+                      <span>Proc: <strong className="text-white">{fmtKg(stats.proc)} kg</strong></span>
                     </div>
                   </div>
                 ))}
@@ -247,7 +240,7 @@ export default function ConsolidadoView({ records }: Props) {
           )}
         </div>
 
-        {/* Recuadro 2: Embalado Total, Bulk 3,0 kg, Bulk 3,6 kg + Desglose Mensual de Cajas */}
+        {/* Recuadro 2: Verde */}
         <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
@@ -276,29 +269,20 @@ export default function ConsolidadoView({ records }: Props) {
             </div>
           </div>
 
-          {/* Desglose Automático por Mes (Verde - Cajas y Embalado) */}
+          {/* Desglose en Filas Horizontales Limpias */}
           {Object.keys(monthlyProductionStats).length > 0 && (
-            <div className="border-t border-white/40 pt-5">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100 mb-3 text-center">
+            <div className="border-t border-white/40 pt-4 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100 text-center mb-2">
                 📦 Producción y Cajas por Mes
               </p>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div className="space-y-1.5 max-h-44 overflow-y-auto pr-1">
                 {Object.entries(monthlyProductionStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl p-3 text-center border border-white/25 shadow-sm">
-                    <p className="text-xs font-black uppercase text-white tracking-wide mb-1.5 underline decoration-emerald-300 underline-offset-4">{mes}</p>
-                    <div className="grid grid-cols-3 text-[11px] text-emerald-100 divide-x divide-white/30">
-                      <div className="px-0.5 text-center">
-                        <span className="block text-[9px] uppercase opacity-80 font-semibold">Embalado</span>
-                        <span className="font-bold text-white text-xs">{fmtKg(stats.embalado)} kg</span>
-                      </div>
-                      <div className="px-0.5 text-center">
-                        <span className="block text-[9px] uppercase opacity-80 font-semibold">3.0 kg</span>
-                        <span className="font-bold text-white text-xs">{fmtBoxes(stats.cajas3)} cjs</span>
-                      </div>
-                      <div className="px-0.5 text-center">
-                        <span className="block text-[9px] uppercase opacity-80 font-semibold">3.6 kg</span>
-                        <span className="font-bold text-white text-xs">{fmtBoxes(stats.cajas36)} cjs</span>
-                      </div>
+                  <div key={mes} className="bg-black/15 rounded-xl px-3 py-2 flex items-center justify-between border border-white/20 text-xs text-emerald-100">
+                    <span className="font-extrabold uppercase text-white tracking-wide">{mes}</span>
+                    <div className="flex gap-3 text-[11px]">
+                      <span>Embalado: <strong className="text-white">{fmtKg(stats.embalado)} kg</strong></span>
+                      <span>3.0kg: <strong className="text-white">{fmtBoxes(stats.cajas3)} cjs</strong></span>
+                      <span>3.6kg: <strong className="text-white">{fmtBoxes(stats.cajas36)} cjs</strong></span>
                     </div>
                   </div>
                 ))}
