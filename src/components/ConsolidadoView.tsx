@@ -94,7 +94,7 @@ export default function ConsolidadoView({ records }: Props) {
               <th style="background-color: #059669; color: white;">Embalado kg</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,6 kg (cajas)</th>
-              <th>Merma</th>
+              <th>Merma kg</th>
               <th>Observaciones</th>
             </tr>
           </thead>
@@ -165,7 +165,7 @@ export default function ConsolidadoView({ records }: Props) {
         </p>
       </div>
 
-      {/* Dos Recuadros Grandes (Sin iconos laterales molestos y con buen espacio) */}
+      {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
         {/* Recuadro 1: Recepción, Procesado y % Exportación */}
@@ -285,7 +285,9 @@ export default function ConsolidadoView({ records }: Props) {
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-right">Bulk 3,6 kg</th>
 
-              <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-right">Merma</th>
+              {/* Columna modificada a Merma kg */}
+              <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-right">Merma kg</th>
+              
               <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
             </tr>
           </thead>
