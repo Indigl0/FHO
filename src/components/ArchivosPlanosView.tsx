@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FileText, Download, Plus, Trash2, CheckCircle2 } from 'lucide-react';
+import { FileText, Download, Plus, Trash2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 interface PalletItem {
   id: string;
@@ -13,7 +13,7 @@ export default function ArchivosPlanosView() {
   const [codigoEspecie] = useState('10314200'); // Fijo por regla SAG
   const [establecimiento] = useState('0984'); // Fijo por regla SAG
   
-  // Códigos de país destino con sus valores por defecto requeridos (editables)
+  // Códigos de país destino con valores por defecto (editables)
   const [codigoPais1, setCodigoPais1] = useState('520');
   const [codigoPais2, setCodigoPais2] = useState('000');
 
@@ -30,6 +30,7 @@ export default function ArchivosPlanosView() {
   ]);
 
   const [successMsg, setSuccessMsg] = useState('');
+  const [errorMsg, setErrorMsg] = useState('');
 
   const handleAddPallet = () => {
     setPallets([...pallets, { id: Date.now().toString(), nPallet: '', cantidadCajas: '' }]);
@@ -47,13 +48,41 @@ export default function ArchivosPlanosView() {
   };
 
   const generarArchivoPlano = () => {
-    // Validación básica
-    if (!nSolicitud) {
-      alert('Por favor, ingresa el N° Solicitud (ISV).');
+    setErrorMsg('');
+    setSuccessMsg('');
+
+    // Validaciones estrictas
+    if (!nSolicitud.trim()) {
+      setErrorMsg('El campo N° Solicitud (ISV) es obligatorio.');
+      return;
+    }
+    if (!codigoPais1.trim() || codigoPais1.length !== 3) {
+      setErrorMsg('El Código País Destino (1) debe tener exactamente 3 dígitos.');
+      return;
+    }
+    if (!codigoPais2.trim() || codigoPais2.length !== 3) {
+      setErrorMsg('El Código País Destino (2) debe tener exactamente 3 dígitos.');
+      return;
+    }
+    if (!fecha.trim() || fecha.length !== 8) {
+      setErrorMsg('La Fecha debe tener el formato AAAAMMDD (8 dígitos).');
       return;
     }
 
-    // Estructura del Archivo Plano SAG según norma D-PA-EA-021
+    // Validar pallets
+    for (let i = 0; i < pallets.length; i++) {
+      const p = pallets[i];
+      if (!p.nPallet.trim()) {
+        setErrorMsg(`El Pallet #${i + 1} tiene el campo "Folio del Pallet" vacío.`);
+        return;
+      }
+      if (p.cantidadCajas === '' || Number(p.cantidadCajas) <= 0) {
+        setErrorMsg(`El Pallet #${i + 1} (${p.nPallet || 'Sin Folio'}) debe tener una Cantidad de Cajas válida mayor a 0.`);
+        return;
+      }
+    }
+
+    // Construcción del Archivo Plano SAG según norma D-PA-EA-021
     let contenido = '';
     
     pallets.forEach((p, index) => {
@@ -61,17 +90,16 @@ export default function ArchivosPlanosView() {
       const est = establecimiento.padEnd(4, '0');
       const isv = nSolicitud.padStart(5, '0');
       const esp = codigoEspecie.padEnd(8, '0');
-      const pais1 = codigoPais1.padStart(3, '0');
-      const pais2 = codigoPais2.padStart(3, '0');
+      const pais1 = codigoPais1.padEnd(3, '0');
+      const pais2 = codigoPais2.padEnd(3, '0');
       const fch = fecha.padEnd(8, '0');
       const nroPallet = String(p.nPallet || '').padEnd(10, ' ').slice(0, 10);
       const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
 
-      // Línea de formato plano
       contenido += `${numLinea}|${est}|${isv}|${esp}|${pais1}|${pais2}|${fch}|${nroPallet}|${cjs}\r\n`;
     });
 
-    // Descargar archivo .txt / .ins / .des
+    // Descarga del archivo
     const extension = tipoFormato.toLowerCase();
     const nombreArchivo = `SAG_${nSolicitud}_${tipoFormato}.${extension}`;
     
@@ -85,8 +113,8 @@ export default function ArchivosPlanosView() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    setSuccessMsg(`¡Archivo ${nombreArchivo} generado con éxito!`);
-    setTimeout(() => setSuccessMsg(''), 4000);
+    setSuccessMsg(`¡Archivo ${nombreArchivo} generado y descargado con éxito!`);
+    setTimeout(() => setSuccessMsg(''), 5000);
   };
 
   return (
@@ -104,10 +132,19 @@ export default function ArchivosPlanosView() {
         </p>
       </div>
 
+      {/* Alerta de Error */}
+      {errorMsg && (
+        <div className="flex items-center gap-2.5 bg-rose-50 border border-rose-200 text-rose-900 p-4 rounded-2xl shadow-sm text-xs font-bold animate-fadeIn">
+          <AlertCircle className="h-5 w-5 text-rose-600 shrink-0" />
+          <span>{errorMsg}</span>
+        </div>
+      )}
+
+      {/* Alerta de Éxito */}
       {successMsg && (
-        <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 text-emerald-800 p-4 rounded-2xl shadow-sm text-xs font-bold animate-fadeIn">
+        <div className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl shadow-sm text-xs font-bold animate-fadeIn">
           <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
-          {successMsg}
+          <span>{successMsg}</span>
         </div>
       )}
 
@@ -145,7 +182,7 @@ export default function ArchivosPlanosView() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Solicitud / ISV (5 dígitos)</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Solicitud / ISV (5 dígitos) *</label>
             <input
               type="text"
               maxLength={5}
@@ -169,7 +206,7 @@ export default function ArchivosPlanosView() {
 
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (1)</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (1) *</label>
             <input
               type="text"
               maxLength={3}
@@ -180,7 +217,7 @@ export default function ArchivosPlanosView() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2)</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
             <input
               type="text"
               maxLength={3}
@@ -191,7 +228,7 @@ export default function ArchivosPlanosView() {
           </div>
 
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD)</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD) *</label>
             <input
               type="text"
               maxLength={8}
@@ -221,7 +258,7 @@ export default function ArchivosPlanosView() {
               <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
               
               <div className="flex-1">
-                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (máx. 10 dígitos)</label>
+                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (máx. 10 dígitos) *</label>
                 <input
                   type="text"
                   maxLength={10}
@@ -233,10 +270,10 @@ export default function ArchivosPlanosView() {
               </div>
 
               <div className="w-36">
-                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas</label>
+                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
                 <input
                   type="number"
-                  min={0}
+                  min={1}
                   placeholder="0"
                   value={p.cantidadCajas}
                   onChange={(e) => handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))}
