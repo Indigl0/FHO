@@ -150,7 +150,7 @@ export default function ConsolidadoView({ records }: Props) {
   const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
   const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
 
-  // Agrupación automática por Mes de Producción para el desglose
+  // Agrupación automática por Mes de Producción (Recepción y Procesado)
   const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
     const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
     if (!acc[mes]) {
@@ -158,6 +158,18 @@ export default function ConsolidadoView({ records }: Props) {
     }
     acc[mes].recep += num(r.recepcionKg);
     acc[mes].proc += num(r.procesadoKg);
+    return acc;
+  }, {});
+
+  // Agrupación automática por Mes de Producción (Embalado y Cajas)
+  const monthlyProductionStats = filtered.reduce((acc: Record<string, { embalado: number; cajas3: number; cajas36: number }>, r) => {
+    const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
+    if (!acc[mes]) {
+      acc[mes] = { embalado: 0, cajas3: 0, cajas36: 0 };
+    }
+    acc[mes].embalado += computeRecord(r).embaladoKg;
+    acc[mes].cajas3 += getBoxCountByWeight(r, 3.0);
+    acc[mes].cajas36 += getBoxCountByWeight(r, 3.6);
     return acc;
   }, {});
 
@@ -179,7 +191,7 @@ export default function ConsolidadoView({ records }: Props) {
       {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
-        {/* Recuadro 1: Recepción, Procesado, % Exportación + Desglose Mensual Automático */}
+        {/* Recuadro 1: Recepción, Procesado, % Exportación + Desglose Mensual */}
         <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
@@ -188,23 +200,18 @@ export default function ConsolidadoView({ records }: Props) {
           </div>
 
           <div className="grid grid-cols-3 gap-4 divide-x-2 divide-white/40 text-center">
-            {/* Dato 1: Recepción Total */}
             <div className="px-2">
               <p className="text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalRecepcion)} <span className="text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-
-            {/* Dato 2: Procesado Total */}
             <div className="px-3">
               <p className="text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalProcesado)} <span className="text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-
-            {/* Dato 3: % Exportación Total */}
             <div className="pl-3">
               <p className="text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
@@ -213,7 +220,7 @@ export default function ConsolidadoView({ records }: Props) {
             </div>
           </div>
 
-          {/* Desglose Automático por Mes */}
+          {/* Desglose Automático por Mes (Naranja) */}
           {Object.keys(monthlyStats).length > 0 && (
             <div className="border-t border-white/40 pt-5">
               <p className="text-xs font-bold uppercase tracking-wider text-orange-100 mb-3 text-center">
@@ -240,32 +247,27 @@ export default function ConsolidadoView({ records }: Props) {
           )}
         </div>
 
-        {/* Recuadro 2: Embalado Total, Bulk 3,0 kg y Bulk 3,6 kg */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl">
-          <div className="flex items-center justify-between mb-6 border-b border-white/40 pb-3">
+        {/* Recuadro 2: Embalado Total, Bulk 3,0 kg, Bulk 3,6 kg + Desglose Mensual de Cajas */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
+          <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
               <Package className="h-4 w-4 text-emerald-100" /> Producción Terminada y Cajas
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-4 divide-x-2 divide-white/40 text-center">
-            {/* Dato 1: Embalado Total */}
             <div className="px-2">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalEmbalado)} <span className="text-sm font-bold text-emerald-100">Kg</span>
               </p>
             </div>
-
-            {/* Dato 2: Bulk 3.0 kg Total */}
             <div className="px-3">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas3)} <span className="text-sm font-bold text-emerald-100">cajas</span>
               </p>
             </div>
-
-            {/* Dato 3: Bulk 3.6 kg Total */}
             <div className="pl-3">
               <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
               <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
@@ -273,6 +275,36 @@ export default function ConsolidadoView({ records }: Props) {
               </p>
             </div>
           </div>
+
+          {/* Desglose Automático por Mes (Verde - Cajas y Embalado) */}
+          {Object.keys(monthlyProductionStats).length > 0 && (
+            <div className="border-t border-white/40 pt-5">
+              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100 mb-3 text-center">
+                📦 Producción y Cajas por Mes
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                {Object.entries(monthlyProductionStats).map(([mes, stats]) => (
+                  <div key={mes} className="bg-black/15 rounded-2xl p-3 text-center border border-white/25 shadow-sm">
+                    <p className="text-xs font-black uppercase text-white tracking-wide mb-1.5 underline decoration-emerald-300 underline-offset-4">{mes}</p>
+                    <div className="grid grid-cols-3 text-[11px] text-emerald-100 divide-x divide-white/30">
+                      <div className="px-0.5 text-center">
+                        <span className="block text-[9px] uppercase opacity-80 font-semibold">Embalado</span>
+                        <span className="font-bold text-white text-xs">{fmtKg(stats.embalado)} kg</span>
+                      </div>
+                      <div className="px-0.5 text-center">
+                        <span className="block text-[9px] uppercase opacity-80 font-semibold">3.0 kg</span>
+                        <span className="font-bold text-white text-xs">{fmtBoxes(stats.cajas3)} cjs</span>
+                      </div>
+                      <div className="px-0.5 text-center">
+                        <span className="block text-[9px] uppercase opacity-80 font-semibold">3.6 kg</span>
+                        <span className="font-bold text-white text-xs">{fmtBoxes(stats.cajas36)} cjs</span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
 
       </div>
@@ -308,7 +340,6 @@ export default function ConsolidadoView({ records }: Props) {
               <th className={thCompactCls}>F. Prod.</th>
               <th className={thCompactCls}>N° Proc.</th>
               
-              {/* N° Guía destacado */}
               <th className="px-2 py-2.5 font-extrabold text-sky-950 whitespace-nowrap text-[11px] bg-sky-200 border-r border-sky-300 text-center shadow-inner">
                 N° Guía
               </th>
