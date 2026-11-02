@@ -13,7 +13,6 @@ export default function ArchivosPlanosView() {
   const [codigoEspecie] = useState('10314200'); // Fijo por regla SAG
   const [establecimiento] = useState('0984'); // Fijo por regla SAG
   
-  // Códigos de país destino con valores por defecto (editables)
   const [codigoPais1, setCodigoPais1] = useState('520');
   const [codigoPais2, setCodigoPais2] = useState('000');
 
@@ -31,6 +30,7 @@ export default function ArchivosPlanosView() {
 
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
+  const [invalidField, setInvalidField] = useState<string | null>(null);
 
   const handleAddPallet = () => {
     setPallets([...pallets, { id: Date.now().toString(), nPallet: '', cantidadCajas: '' }]);
@@ -50,22 +50,31 @@ export default function ArchivosPlanosView() {
   const generarArchivoPlano = () => {
     setErrorMsg('');
     setSuccessMsg('');
+    setInvalidField(null);
 
-    // Validaciones estrictas
+    // Validaciones estrictas con auto-scroll al inicio
     if (!nSolicitud.trim()) {
       setErrorMsg('El campo N° Solicitud (ISV) es obligatorio.');
+      setInvalidField('nSolicitud');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!codigoPais1.trim() || codigoPais1.length !== 3) {
       setErrorMsg('El Código País Destino (1) debe tener exactamente 3 dígitos.');
+      setInvalidField('pais1');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!codigoPais2.trim() || codigoPais2.length !== 3) {
       setErrorMsg('El Código País Destino (2) debe tener exactamente 3 dígitos.');
+      setInvalidField('pais2');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
     if (!fecha.trim() || fecha.length !== 8) {
       setErrorMsg('La Fecha debe tener el formato AAAAMMDD (8 dígitos).');
+      setInvalidField('fecha');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
 
@@ -74,10 +83,14 @@ export default function ArchivosPlanosView() {
       const p = pallets[i];
       if (!p.nPallet.trim()) {
         setErrorMsg(`El Pallet #${i + 1} tiene el campo "Folio del Pallet" vacío.`);
+        setInvalidField(`pallet-folio-${p.id}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
       if (p.cantidadCajas === '' || Number(p.cantidadCajas) <= 0) {
         setErrorMsg(`El Pallet #${i + 1} (${p.nPallet || 'Sin Folio'}) debe tener una Cantidad de Cajas válida mayor a 0.`);
+        setInvalidField(`pallet-cajas-${p.id}`);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
     }
@@ -114,6 +127,7 @@ export default function ArchivosPlanosView() {
     URL.revokeObjectURL(url);
 
     setSuccessMsg(`¡Archivo ${nombreArchivo} generado y descargado con éxito!`);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => setSuccessMsg(''), 5000);
   };
 
@@ -189,7 +203,11 @@ export default function ArchivosPlanosView() {
               placeholder="Ej: 31000"
               value={nSolicitud}
               onChange={(e) => setNSolicitud(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-bold outline-none focus:border-blue-500 bg-white"
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
+                invalidField === 'nSolicitud' 
+                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
+                  : 'border-gray-300 focus:border-blue-500'
+              }`}
             />
           </div>
 
@@ -212,7 +230,11 @@ export default function ArchivosPlanosView() {
               maxLength={3}
               value={codigoPais1}
               onChange={(e) => setCodigoPais1(e.target.value)}
-              className="w-full rounded-xl border border-blue-300 bg-blue-50/50 p-2.5 text-xs font-bold text-blue-900 outline-none focus:border-blue-500 shadow-sm"
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
+                invalidField === 'pais1' 
+                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' 
+                  : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
+              }`}
             />
           </div>
 
@@ -223,7 +245,11 @@ export default function ArchivosPlanosView() {
               maxLength={3}
               value={codigoPais2}
               onChange={(e) => setCodigoPais2(e.target.value)}
-              className="w-full rounded-xl border border-blue-300 bg-blue-50/50 p-2.5 text-xs font-bold text-blue-900 outline-none focus:border-blue-500 shadow-sm"
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
+                invalidField === 'pais2' 
+                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' 
+                  : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
+              }`}
             />
           </div>
 
@@ -234,7 +260,11 @@ export default function ArchivosPlanosView() {
               maxLength={8}
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-bold outline-none focus:border-blue-500 bg-white"
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
+                invalidField === 'fecha' 
+                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
+                  : 'border-gray-300 focus:border-blue-500'
+              }`}
             />
           </div>
         </div>
@@ -253,44 +283,57 @@ export default function ArchivosPlanosView() {
         </div>
 
         <div className="space-y-3 pt-2">
-          {pallets.map((p, idx) => (
-            <div key={p.id} className="flex items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
-              <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
-              
-              <div className="flex-1">
-                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (máx. 10 dígitos) *</label>
-                <input
-                  type="text"
-                  maxLength={10}
-                  placeholder="Ej: 0000011111"
-                  value={p.nPallet}
-                  onChange={(e) => handlePalletChange(p.id, 'nPallet', e.target.value)}
-                  className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
-                />
-              </div>
+          {pallets.map((p, idx) => {
+            const isFolioInvalid = invalidField === `pallet-folio-${p.id}`;
+            const isCajasInvalid = invalidField === `pallet-cajas-${p.id}`;
 
-              <div className="w-36">
-                <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
-                <input
-                  type="number"
-                  min={1}
-                  placeholder="0"
-                  value={p.cantidadCajas}
-                  onChange={(e) => handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))}
-                  className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
-                />
-              </div>
+            return (
+              <div key={p.id} className="flex items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
+                <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
+                
+                <div className="flex-1">
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (máx. 10 dígitos) *</label>
+                  <input
+                    type="text"
+                    maxLength={10}
+                    placeholder="Ej: 0000011111"
+                    value={p.nPallet}
+                    onChange={(e) => handlePalletChange(p.id, 'nPallet', e.target.value)}
+                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
+                      isFolioInvalid 
+                        ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
+                        : 'border-gray-300 focus:border-blue-500'
+                    }`}
+                  />
+                </div>
 
-              <button
-                onClick={() => handleRemovePallet(p.id)}
-                disabled={pallets.length === 1}
-                className="mt-4 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                title="Eliminar pallet"
-              >
-                <Trash2 className="h-4 w-4" />
-              </button>
-            </div>
-          ))}
+                <div className="w-36">
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
+                  <input
+                    type="number"
+                    min={1}
+                    placeholder="0"
+                    value={p.cantidadCajas}
+                    onChange={(e) => handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))}
+                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
+                      isCajasInvalid 
+                        ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
+                        : 'border-gray-300 focus:border-blue-500'
+                    }`}
+                  />
+                </div>
+
+                <button
+                  onClick={() => handleRemovePallet(p.id)}
+                  disabled={pallets.length === 1}
+                  className="mt-4 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
+                  title="Eliminar pallet"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </button>
+              </div>
+            );
+          })}
         </div>
       </div>
 
