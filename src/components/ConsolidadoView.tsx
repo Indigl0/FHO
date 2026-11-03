@@ -150,7 +150,6 @@ export default function ConsolidadoView({ records }: Props) {
   const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
   const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
 
-  // Agrupación automática por Mes de Producción
   const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
     const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
     if (!acc[mes]) {
@@ -173,16 +172,16 @@ export default function ConsolidadoView({ records }: Props) {
   }, {});
 
   return (
-    <div className="space-y-6 w-full max-w-full">
+    <div className="space-y-6 w-full max-w-full px-2 sm:px-0">
       {/* Título Principal */}
       <div className="flex flex-col items-center justify-center text-center space-y-1.5 py-4 border-b border-gray-200/85 mb-2">
         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
           <BarChart2 className="h-3.5 w-3.5" /> Monitoreo y Cuadratura en Línea
         </div>
-        <h2 className="text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
+        <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
           Monitoreo de Fruta a Granel FHO
         </h2>
-        <p className="text-xs lg:text-sm font-medium text-slate-500 max-w-xl">
+        <p className="text-xs sm:text-sm font-medium text-slate-500 max-w-xl px-4">
           Panel oficial de control y seguimiento en línea de recepciones, rendimientos de embalado y exportación de arándanos.
         </p>
       </div>
@@ -191,30 +190,30 @@ export default function ConsolidadoView({ records }: Props) {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
         {/* Recuadro 1: Naranja */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
+        <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
               <BarChart2 className="h-4 w-4 text-orange-100" /> Resumen Operativo de Procesos
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 divide-x-2 divide-white/40 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
+            <div className="px-1">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {fmtKg(totalRecepcion)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
+              </p>
+            </div>
             <div className="px-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalRecepcion)} <span className="text-sm font-bold text-orange-100">Kg</span>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {fmtKg(totalProcesado)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-            <div className="px-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalProcesado)} <span className="text-sm font-bold text-orange-100">Kg</span>
-              </p>
-            </div>
-            <div className="pl-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {globalPctExportacion.toFixed(1)}<span className="text-2xl font-bold text-orange-100">%</span>
+            <div className="pl-2">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {globalPctExportacion.toFixed(1)}<span className="text-lg sm:text-2xl font-bold text-orange-100">%</span>
               </p>
             </div>
           </div>
@@ -226,11 +225,11 @@ export default function ConsolidadoView({ records }: Props) {
               </p>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {Object.entries(monthlyStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl px-5 py-3 flex items-center justify-between border border-white/20 text-xs text-orange-100 shadow-sm">
+                  <div key={mes} className="bg-black/15 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-white/20 text-xs text-orange-100 shadow-sm">
                     <span className="font-extrabold uppercase text-white tracking-wide text-sm">{mes}</span>
-                    <div className="flex gap-6 text-xs">
-                      <span>Recep: <strong className="text-white text-sm ml-1">{fmtKg(stats.recep)} kg</strong></span>
-                      <span>Proc: <strong className="text-white text-sm ml-1">{fmtKg(stats.proc)} kg</strong></span>
+                    <div className="flex gap-4 text-xs">
+                      <span>Recep: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.recep)} kg</strong></span>
+                      <span>Proc: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.proc)} kg</strong></span>
                     </div>
                   </div>
                 ))}
@@ -240,30 +239,30 @@ export default function ConsolidadoView({ records }: Props) {
         </div>
 
         {/* Recuadro 2: Verde */}
-        <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-7 py-9 shadow-lg text-white transition-all duration-300 hover:shadow-xl space-y-6">
+        <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
               <Package className="h-4 w-4 text-emerald-100" /> Producción Terminada y Cajas
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 divide-x-2 divide-white/40 text-center">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
+            <div className="px-1">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {fmtKg(totalEmbalado)} <span className="text-xs sm:text-sm font-bold text-emerald-100">Kg</span>
+              </p>
+            </div>
             <div className="px-2">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalEmbalado)} <span className="text-sm font-bold text-emerald-100">Kg</span>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {fmtBoxes(totalCajas3)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
             </div>
-            <div className="px-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {fmtBoxes(totalCajas3)} <span className="text-sm font-bold text-emerald-100">cajas</span>
-              </p>
-            </div>
-            <div className="pl-3">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
-              <p className="mt-2.5 text-3xl font-black tracking-tight text-white">
-                {fmtBoxes(totalCajas36)} <span className="text-sm font-bold text-emerald-100">cajas</span>
+            <div className="pl-2">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
             </div>
           </div>
@@ -275,12 +274,12 @@ export default function ConsolidadoView({ records }: Props) {
               </p>
               <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
                 {Object.entries(monthlyProductionStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl px-5 py-3 flex items-center justify-between border border-white/20 text-xs text-emerald-100 shadow-sm">
+                  <div key={mes} className="bg-black/15 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-white/20 text-xs text-emerald-100 shadow-sm">
                     <span className="font-extrabold uppercase text-white tracking-wide text-sm">{mes}</span>
-                    <div className="flex gap-5 text-xs">
-                      <span>Embalado: <strong className="text-white text-sm ml-1">{fmtKg(stats.embalado)} kg</strong></span>
-                      <span>3.0kg: <strong className="text-white text-sm ml-1">{fmtBoxes(stats.cajas3)} cjs</strong></span>
-                      <span>3.6kg: <strong className="text-white text-sm ml-1">{fmtBoxes(stats.cajas36)} cjs</strong></span>
+                    <div className="flex flex-wrap justify-center gap-3 text-xs">
+                      <span>Emb: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.embalado)} kg</strong></span>
+                      <span>3.0kg: <strong className="text-white text-xs sm:text-sm ml-1">{fmtBoxes(stats.cajas3)} cjs</strong></span>
+                      <span>3.6kg: <strong className="text-white text-xs sm:text-sm ml-1">{fmtBoxes(stats.cajas36)} cjs</strong></span>
                     </div>
                   </div>
                 ))}
@@ -292,7 +291,7 @@ export default function ConsolidadoView({ records }: Props) {
       </div>
 
       {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
         <div className="relative flex-1 min-w-[240px]">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
           <input
@@ -304,15 +303,15 @@ export default function ConsolidadoView({ records }: Props) {
         </div>
         <button
           onClick={exportExcelPro}
-          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 shadow-sm"
+          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 shadow-sm w-full sm:w-auto justify-center"
         >
           <Download className="h-4 w-4" /> Exportar Excel Profesional (.xls)
         </button>
       </div>
 
-      {/* Tabla detallada optimizada con encabezados centrados */}
-      <div className="w-full overflow-visible rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full text-xs">
+      {/* Tabla detallada optimizada con scroll horizontal nativo para móviles */}
+      <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
+        <table className="w-full text-xs min-w-[900px]">
           <thead>
             <tr className="border-b-2 border-gray-300 text-left">
               <th className={thCompactLeft}>Productor</th>
@@ -326,7 +325,6 @@ export default function ConsolidadoView({ records }: Props) {
                 N° Guía
               </th>
 
-              {/* Encabezados numéricos centrados */}
               <th className={`${thCompactCls} text-center`}>Recep. kg</th>
               <th className={thCompactLeft}>Variedad</th>
               <th className={`${thCompactCls} text-center`}>Procesado</th>
