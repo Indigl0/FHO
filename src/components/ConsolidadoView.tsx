@@ -198,19 +198,19 @@ export default function ConsolidadoView({ records }: Props) {
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
-            <div className="px-1">
+            <div className="px-1 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalRecepcion)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-            <div className="px-2">
+            <div className="px-2 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalProcesado)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-            <div className="pl-2">
+            <div className="pl-2 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {globalPctExportacion.toFixed(1)}<span className="text-lg sm:text-2xl font-bold text-orange-100">%</span>
@@ -247,19 +247,19 @@ export default function ConsolidadoView({ records }: Props) {
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
-            <div className="px-1">
+            <div className="px-1 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalEmbalado)} <span className="text-xs sm:text-sm font-bold text-emerald-100">Kg</span>
               </p>
             </div>
-            <div className="px-2">
+            <div className="px-2 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas3)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
             </div>
-            <div className="pl-2">
+            <div className="pl-2 flex flex-col justify-between">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
@@ -309,7 +309,7 @@ export default function ConsolidadoView({ records }: Props) {
         </button>
       </div>
 
-      {/* Tabla detallada optimizada con scroll horizontal nativo para móviles */}
+      {/* Tabla detallada optimizada */}
       <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
         <table className="w-full text-xs min-w-[900px]">
           <thead>
