@@ -1,27 +1,43 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
 import { Pencil, Trash2, Plus, Download, Search } from 'lucide-react';
 
 export const RechazosView: React.FC = () => {
-  const [rechazos, setRechazos] = useState<RechazoRecord[]>([
-    {
-      id: '1',
-      fecha: '12-12-25',
-      numero: 1,
-      lote: 118,
-      productor: 'AGRICOLA AGROBERRIES SPA (FUNDO CUN CUN)',
-      tipoRechazo: 'SAG - USDA',
-      folio: 4686,
-      opInicial: 224,
-      embalaje: '12 X 1 PTNA R/F',
-      fechaEmbalaje: '10-12-25',
-      procesoFho: 'FUMIGACION',
-      opFinal: 224,
-      nContenedor: 'MMAU131365-2',
-      estado: 'EXPORTADO',
-      observaciones: 'FLM / Se asocia a la op...',
-    },
-  ]);
+  // Inicializamos el estado cargando desde localStorage si existe, o con el registro por defecto
+  const [rechazos, setRechazos] = useState<RechazoRecord[]>(() => {
+    const saved = localStorage.getItem('rechazos_fho');
+    if (saved) {
+      try {
+        return JSON.parse(saved);
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    return [
+      {
+        id: '1',
+        fecha: '12-12-25',
+        numero: 1,
+        lote: 118,
+        productor: 'AGRICOLA AGROBERRIES SPA (FUNDO CUN CUN)',
+        tipoRechazo: 'SAG - USDA',
+        folio: 4686,
+        opInicial: 224,
+        embalaje: '12 X 1 PTNA R/F',
+        fechaEmbalaje: '10-12-25',
+        procesoFho: 'FUMIGACION',
+        opFinal: 224,
+        nContenedor: 'MMAU131365-2',
+        estado: 'EXPORTADO',
+        observaciones: 'FLM / Se asocia a la op...',
+      },
+    ];
+  });
+
+  // Guardamos automáticamente en localStorage cada vez que los rechazos cambien
+  useEffect(() => {
+    localStorage.setItem('rechazos_fho', JSON.stringify(rechazos));
+  }, [rechazos]);
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
