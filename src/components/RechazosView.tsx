@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { RechazoRecord } from '../types';
+import { Pencil, Trash2, Plus, Download, Search } from 'lucide-react';
 
 export const RechazosView: React.FC = () => {
   const [rechazos, setRechazos] = useState<RechazoRecord[]>([
@@ -24,10 +25,11 @@ export const RechazosView: React.FC = () => {
 
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
+  const [editingId, setEditingId] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Omit<RechazoRecord, 'id'>>({
     fecha: '',
-    numero: rechazos.length + 1,
+    numero: 1,
     lote: '',
     productor: '',
     tipoRechazo: '',
@@ -47,17 +49,11 @@ export const RechazosView: React.FC = () => {
     setFormData({ ...formData, [name]: value });
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    const nuevoRegistro: RechazoRecord = {
-      ...formData,
-      id: Date.now().toString(),
-    };
-    setRechazos([nuevoRegistro, ...rechazos]);
-    setShowModal(false);
+  const handleOpenCreate = () => {
+    setEditingId(null);
     setFormData({
       fecha: '',
-      numero: rechazos.length + 2,
+      numero: rechazos.length + 1,
       lote: '',
       productor: '',
       tipoRechazo: '',
@@ -71,6 +67,53 @@ export const RechazosView: React.FC = () => {
       estado: '',
       observaciones: '',
     });
+    setShowModal(true);
+  };
+
+  const handleOpenEdit = (item: RechazoRecord) => {
+    setEditingId(item.id);
+    setFormData({
+      fecha: item.fecha,
+      numero: item.numero,
+      lote: item.lote,
+      productor: item.productor,
+      tipoRechazo: item.tipoRechazo,
+      folio: item.folio,
+      opInicial: item.opInicial,
+      embalaje: item.embalaje,
+      fechaEmbalaje: item.fechaEmbalaje,
+      procesoFho: item.procesoFho,
+      opFinal: item.opFinal,
+      nContenedor: item.nContenedor,
+      estado: item.estado,
+      observaciones: item.observaciones,
+    });
+    setShowModal(true);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm('¿Estás seguro de que deseas eliminar este registro de rechazo?')) {
+      setRechazos(rechazos.filter((item) => item.id !== id));
+    }
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (editingId) {
+      // Editar registro existente
+      setRechazos(
+        rechazos.map((item) => (item.id === editingId ? { ...formData, id: editingId } : item))
+      );
+    } else {
+      // Crear nuevo registro
+      const nuevoRegistro: RechazoRecord = {
+        ...formData,
+        id: Date.now().toString(),
+      };
+      setRechazos([nuevoRegistro, ...rechazos]);
+    }
+    setShowModal(false);
+    setEditingId(null);
   };
 
   const filteredRechazos = rechazos.filter((item) =>
@@ -85,6 +128,7 @@ export const RechazosView: React.FC = () => {
 
   return (
     <div className="p-6 max-w-full mx-auto space-y-6">
+      {/* Cabecera del Módulo */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Detalle de Rechazos ASQUE</h2>
@@ -93,30 +137,35 @@ export const RechazosView: React.FC = () => {
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button
             onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
           >
-            📥 Exportar Excel Profesional
+            <Download className="h-4 w-4" /> Exportar Excel Profesional
           </button>
           <button
-            onClick={() => setShowModal(true)}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+            onClick={handleOpenCreate}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
           >
-            + Nuevo Registro
+            <Plus className="h-4 w-4" /> Nuevo Registro
           </button>
         </div>
       </div>
 
+      {/* Barra de búsqueda */}
       <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
-        <input
-          type="text"
-          placeholder="Buscar por productor, lote, folio, tipo de rechazo..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="w-full md:w-96 px-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <span className="text-sm text-slate-500">Total registros: {filteredRechazos.length}</span>
+        <div className="relative w-full md:w-96">
+          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por productor, lote, folio..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+        <span className="text-sm text-slate-500 font-medium">Total registros: {filteredRechazos.length}</span>
       </div>
 
+      {/* Tabla de Registros */}
       <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
         <table className="w-full text-left border-collapse text-xs">
           <thead>
@@ -135,6 +184,7 @@ export const RechazosView: React.FC = () => {
               <th className="p-3">N° Contenedor</th>
               <th className="p-3">Estado</th>
               <th className="p-3">Observaciones</th>
+              <th className="p-3 text-center">Acciones</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -163,11 +213,29 @@ export const RechazosView: React.FC = () => {
                     </span>
                   </td>
                   <td className="p-3 text-slate-500">{item.observaciones}</td>
+                  <td className="p-3 text-center">
+                    <div className="flex items-center justify-center gap-2">
+                      <button
+                        onClick={() => handleOpenEdit(item)}
+                        className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                        title="Editar registro"
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </button>
+                      <button
+                        onClick={() => handleDelete(item.id)}
+                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                        title="Eliminar registro"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </button>
+                    </div>
+                  </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={14} className="text-center py-8 text-slate-400">
+                <td colSpan={15} className="text-center py-8 text-slate-400">
                   No hay registros de rechazos disponibles.
                 </td>
               </tr>
@@ -176,10 +244,13 @@ export const RechazosView: React.FC = () => {
         </table>
       </div>
 
+      {/* Modal para Crear / Editar Registro */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
           <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-            <h3 className="text-lg font-bold text-slate-800 mb-4">Nuevo Registro de Rechazo</h3>
+            <h3 className="text-lg font-bold text-slate-800 mb-4">
+              {editingId ? 'Editar Registro de Rechazo' : 'Nuevo Registro de Rechazo'}
+            </h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha</label>
@@ -235,7 +306,9 @@ export const RechazosView: React.FC = () => {
               </div>
               <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">Guardar Registro</button>
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                  {editingId ? 'Guardar Cambios' : 'Guardar Registro'}
+                </button>
               </div>
             </form>
           </div>
