@@ -215,9 +215,13 @@ export const RechazosView: React.FC = () => {
                   <td className="p-3">{item.lote}</td>
                   <td className="p-3 font-medium text-slate-900">{item.productor}</td>
                   <td className="p-3">
-                    <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
-                      {item.tipoRechazo}
-                    </span>
+                    {item.tipoRechazo ? (
+                      <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
+                        {item.tipoRechazo}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
                   </td>
                   <td className="p-3">{item.folio}</td>
                   <td className="p-3">{item.opInicial}</td>
@@ -227,9 +231,13 @@ export const RechazosView: React.FC = () => {
                   <td className="p-3">{item.opFinal}</td>
                   <td className="p-3 font-mono">{item.nContenedor}</td>
                   <td className="p-3">
-                    <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
-                      {item.estado}
-                    </span>
+                    {item.estado ? (
+                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
+                        {item.estado}
+                      </span>
+                    ) : (
+                      <span className="text-slate-400">-</span>
+                    )}
                   </td>
                   <td className="p-3 text-slate-500">{item.observaciones}</td>
                   <td className="p-3 text-center">
