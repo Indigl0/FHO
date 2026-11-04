@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
-import { Pencil, Trash2, Plus, Download, Search, Loader2 } from 'lucide-react';
+import { Pencil, Trash2, Plus, Download, Search, FileSpreadsheet, FileCode } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 
 export const RechazosView: React.FC = () => {
@@ -27,7 +27,6 @@ export const RechazosView: React.FC = () => {
     observaciones: '',
   });
 
-  // Cargar registros y escuchar cambios en tiempo real desde Supabase
   useEffect(() => {
     fetchRechazos();
 
@@ -166,14 +165,12 @@ export const RechazosView: React.FC = () => {
       };
 
       if (editingId) {
-        // Actualizar en Supabase
         const { error } = await supabase
           .from('rechazos_records')
           .update(payload)
           .eq('id', editingId);
         if (error) throw error;
       } else {
-        // Insertar nuevo en Supabase
         const newId = Date.now().toString();
         const { error } = await supabase
           .from('rechazos_records')
@@ -196,15 +193,23 @@ export const RechazosView: React.FC = () => {
     )
   );
 
+  const exportToCSV = () => {
+    alert('Exportando rechazos a CSV...');
+  };
+
+  const exportToJSON = () => {
+    alert('Exportando rechazos a JSON...');
+  };
+
   const exportToExcel = () => {
-    alert('Exportando detalle de rechazos a Excel...');
+    alert('Exportando detalle de rechazos a Excel profesional...');
   };
 
   if (loading) {
     return (
       <div className="flex h-96 w-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
-          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
           <p className="text-xs font-medium text-gray-500">Cargando rechazos desde Supabase...</p>
         </div>
       </div>
@@ -212,194 +217,208 @@ export const RechazosView: React.FC = () => {
   }
 
   return (
-    <div className="p-6 max-w-full mx-auto space-y-6">
-      {/* Cabecera del Módulo */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
-        <div>
-          <h2 className="text-xl font-bold text-slate-800">Detalle de Rechazos ASQUE</h2>
-          <p className="text-sm text-slate-500">Monitoreo y control oficial de rechazos de fruta a granel y empaque (Sincronizado con Supabase).</p>
+    <div className="space-y-6 w-full max-w-full">
+      {/* Barra de Búsqueda y Acciones estilo Granel FHO */}
+      <div className="flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm border border-slate-100 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex-1 max-w-xl">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
+          <input
+            type="text"
+            placeholder="Buscar por productor, lote, folio, tipo rechazo, observaciones..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
+          />
         </div>
-        <div className="flex items-center gap-3 w-full md:w-auto">
+
+        <div className="flex flex-wrap items-center gap-2">
+          <button
+            onClick={exportToCSV}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> CSV
+          </button>
+          <button
+            onClick={exportToJSON}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+          >
+            <FileCode className="h-4 w-4 text-blue-600" /> JSON
+          </button>
           <button
             onClick={exportToExcel}
-            className="flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
           >
-            <Download className="h-4 w-4" /> Exportar Excel Profesional
+            <Download className="h-4 w-4" /> Exportar Excel
           </button>
           <button
             onClick={handleOpenCreate}
-            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
+            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" /> Nuevo Registro
           </button>
         </div>
       </div>
 
-      {/* Barra de búsqueda */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex items-center gap-4">
-        <div className="relative w-full md:w-96">
-          <Search className="absolute left-3 top-2.5 h-4 w-4 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Buscar por productor, lote, folio..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
+      {/* Barra de Indicadores / Resumen estilo Granel FHO */}
+      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
+        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm whitespace-nowrap">
+          <span className="text-xs font-medium text-slate-500">Total Registros:</span>
+          <span className="text-sm font-bold text-slate-900">{filteredRechazos.length} Reg.</span>
         </div>
-        <span className="text-sm text-slate-500 font-medium">Total registros: {filteredRechazos.length}</span>
       </div>
 
       {/* Tabla de Registros */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-100 overflow-x-auto">
-        <table className="w-full text-left border-collapse text-xs">
-          <thead>
-            <tr className="bg-emerald-50 text-emerald-900 border-b border-emerald-100 font-semibold">
-              <th className="p-3">Fecha</th>
-              <th className="p-3">N°</th>
-              <th className="p-3">Lote</th>
-              <th className="p-3">Productor</th>
-              <th className="p-3">Tipo Rechazo</th>
-              <th className="p-3">Folio</th>
-              <th className="p-3">OP Inicial</th>
-              <th className="p-3">Embalaje</th>
-              <th className="p-3">F. Embalaje</th>
-              <th className="p-3">Proceso FHO</th>
-              <th className="p-3">OP Final</th>
-              <th className="p-3">N° Contenedor</th>
-              <th className="p-3">Estado</th>
-              <th className="p-3">Observaciones</th>
-              <th className="p-3 text-center">Acciones</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 text-slate-700">
-            {filteredRechazos.length > 0 ? (
-              filteredRechazos.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition">
-                  <td className="p-3">{item.fecha}</td>
-                  <td className="p-3 font-medium">{item.numero}</td>
-                  <td className="p-3">{item.lote}</td>
-                  <td className="p-3 font-medium text-slate-900">{item.productor}</td>
-                  <td className="p-3">
-                    {item.tipoRechazo ? (
-                      <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
-                        {item.tipoRechazo}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </td>
-                  <td className="p-3">{item.folio}</td>
-                  <td className="p-3">{item.opInicial}</td>
-                  <td className="p-3">{item.embalaje}</td>
-                  <td className="p-3">{item.fechaEmbalaje}</td>
-                  <td className="p-3">{item.procesoFho}</td>
-                  <td className="p-3">{item.opFinal}</td>
-                  <td className="p-3 font-mono">{item.nContenedor}</td>
-                  <td className="p-3">
-                    {item.estado ? (
-                      <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
-                        {item.estado}
-                      </span>
-                    ) : (
-                      <span className="text-slate-400">-</span>
-                    )}
-                  </td>
-                  <td className="p-3 text-slate-500">{item.observaciones}</td>
-                  <td className="p-3 text-center">
-                    <div className="flex items-center justify-center gap-2">
-                      <button
-                        onClick={() => handleOpenEdit(item)}
-                        className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                        title="Editar registro"
-                      >
-                        <Pencil className="h-3.5 w-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleDelete(item.id)}
-                        className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                        title="Eliminar registro"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                      </button>
-                    </div>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-left border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
+                <th className="p-3.5">Fecha</th>
+                <th className="p-3.5">N°</th>
+                <th className="p-3.5">Lote</th>
+                <th className="p-3.5">Productor</th>
+                <th className="p-3.5">Tipo Rechazo</th>
+                <th className="p-3.5">Folio</th>
+                <th className="p-3.5">OP Inicial</th>
+                <th className="p-3.5">Embalaje</th>
+                <th className="p-3.5">F. Embalaje</th>
+                <th className="p-3.5">Proceso FHO</th>
+                <th className="p-3.5">OP Final</th>
+                <th className="p-3.5">N° Contenedor</th>
+                <th className="p-3.5">Estado</th>
+                <th className="p-3.5">Observaciones</th>
+                <th className="p-3.5 text-center">Acciones</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {filteredRechazos.length > 0 ? (
+                filteredRechazos.map((item) => (
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                    <td className="p-3.5">{item.fecha}</td>
+                    <td className="p-3.5 font-medium">{item.numero}</td>
+                    <td className="p-3.5">{item.lote}</td>
+                    <td className="p-3.5 font-medium text-slate-900">{item.productor}</td>
+                    <td className="p-3.5">
+                      {item.tipoRechazo ? (
+                        <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
+                          {item.tipoRechazo}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-3.5">{item.folio}</td>
+                    <td className="p-3.5">{item.opInicial}</td>
+                    <td className="p-3.5">{item.embalaje}</td>
+                    <td className="p-3.5">{item.fechaEmbalaje}</td>
+                    <td className="p-3.5">{item.procesoFho}</td>
+                    <td className="p-3.5">{item.opFinal}</td>
+                    <td className="p-3.5 font-mono">{item.nContenedor}</td>
+                    <td className="p-3.5">
+                      {item.estado ? (
+                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
+                          {item.estado}
+                        </span>
+                      ) : (
+                        <span className="text-slate-400">-</span>
+                      )}
+                    </td>
+                    <td className="p-3.5 text-slate-500">{item.observaciones}</td>
+                    <td className="p-3.5 text-center">
+                      <div className="flex items-center justify-center gap-1.5">
+                        <button
+                          onClick={() => handleOpenEdit(item)}
+                          className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                          title="Editar registro"
+                        >
+                          <Pencil className="h-3.5 w-3.5" />
+                        </button>
+                        <button
+                          onClick={() => handleDelete(item.id)}
+                          className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                          title="Eliminar registro"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={15} className="text-center py-12 text-slate-400">
+                    No hay registros disponibles en el consolidado.
                   </td>
                 </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={15} className="text-center py-8 text-slate-400">
-                  No hay registros de rechazos disponibles en la base de datos.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {/* Modal para Crear / Editar Registro */}
       {showModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-xl max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+          <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-slate-800 mb-4">
               {editingId ? 'Editar Registro de Rechazo' : 'Nuevo Registro de Rechazo'}
             </h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha</label>
-                <input type="text" name="fecha" placeholder="Ej: 12-12-25" value={formData.fecha ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="fecha" placeholder="Ej: 12-12-25" value={formData.fecha ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Lote</label>
-                <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-slate-600 font-medium mb-1">Productor</label>
-                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Tipo de Rechazo</label>
-                <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Folio</label>
-                <input type="text" name="folio" placeholder="Ej: 4686" value={formData.folio ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="folio" placeholder="Ej: 4686" value={formData.folio ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Inicial</label>
-                <input type="text" name="opInicial" placeholder="Ej: 224" value={formData.opInicial ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="opInicial" placeholder="Ej: 224" value={formData.opInicial ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Embalaje</label>
-                <input type="text" name="embalaje" placeholder="Ej: 12 X 1 PTNA R/F" value={formData.embalaje ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="embalaje" placeholder="Ej: 12 X 1 PTNA R/F" value={formData.embalaje ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha Embalaje</label>
-                <input type="text" name="fechaEmbalaje" placeholder="Ej: 10-12-25" value={formData.fechaEmbalaje ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="fechaEmbalaje" placeholder="Ej: 10-12-25" value={formData.fechaEmbalaje ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Proceso FHO</label>
-                <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Final</label>
-                <input type="text" name="opFinal" placeholder="Ej: 224" value={formData.opFinal ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="opFinal" placeholder="Ej: 224" value={formData.opFinal ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Contenedor</label>
-                <input type="text" name="nContenedor" placeholder="Ej: MMAU131365-2" value={formData.nContenedor ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="nContenedor" placeholder="Ej: MMAU131365-2" value={formData.nContenedor ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Estado</label>
-                <input type="text" name="estado" placeholder="Ej: EXPORTADO" value={formData.estado ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="estado" placeholder="Ej: EXPORTADO" value={formData.estado ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-slate-600 font-medium mb-1">Observaciones</label>
-                <input type="text" name="observaciones" placeholder="Ej: FLM / Se asocia a..." value={formData.observaciones ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="observaciones" placeholder="Ej: FLM / Se asocia a..." value={formData.observaciones ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div className="md:col-span-2 flex justify-end gap-3 mt-4">
-                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">Cancelar</button>
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+                <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border border-slate-300 rounded-xl text-slate-700 hover:bg-slate-50 font-medium">Cancelar</button>
+                <button type="submit" className="px-5 py-2 bg-blue-600 text-white rounded-xl hover:bg-blue-700 font-semibold shadow-md">
                   {editingId ? 'Guardar Cambios' : 'Guardar Registro'}
                 </button>
               </div>
