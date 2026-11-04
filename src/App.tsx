@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import GranelFHO from './components/GranelFHO';
 import Consolidado from './components/ConsolidadoView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
+import { RechazosView } from './components/RechazosView';
 
 // ==========================================
 // CONFIGURACIÓN DE ACCESO DE OPERADOR
@@ -245,6 +246,15 @@ function App() {
 
               {userRole === 'admin' && (
                 <TabButton
+                  active={view === 'rechazos'}
+                  onClick={() => setView('rechazos')}
+                  icon={<ClipboardList className="h-4 w-4" />}
+                  label="Rechazos ASQUE"
+                />
+              )}
+
+              {userRole === 'admin' && (
+                <TabButton
                   active={view === 'planos'}
                   onClick={() => setView('planos')}
                   icon={<FileText className="h-4 w-4" />}
@@ -257,6 +267,7 @@ function App() {
 
         <main className="w-full px-6 py-6">
           {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
+          {userRole === 'admin' && view === 'rechazos' && <RechazosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <Consolidado records={records} />}
         </main>
