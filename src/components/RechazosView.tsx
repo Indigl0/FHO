@@ -1,44 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
-import { Pencil, Trash2, Plus, Download, Search } from 'lucide-react';
+import { Pencil, Trash2, Plus, Download, Search, Loader2 } from 'lucide-react';
+import { supabase } from '../utils/supabase';
 
 export const RechazosView: React.FC = () => {
-  // Inicializamos el estado cargando desde localStorage si existe, o con el registro por defecto
-  const [rechazos, setRechazos] = useState<RechazoRecord[]>(() => {
-    const saved = localStorage.getItem('rechazos_fho');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch (e) {
-        console.error(e);
-      }
-    }
-    return [
-      {
-        id: '1',
-        fecha: '12-12-25',
-        numero: 1,
-        lote: 118,
-        productor: 'AGRICOLA AGROBERRIES SPA (FUNDO CUN CUN)',
-        tipoRechazo: 'SAG - USDA',
-        folio: 4686,
-        opInicial: 224,
-        embalaje: '12 X 1 PTNA R/F',
-        fechaEmbalaje: '10-12-25',
-        procesoFho: 'FUMIGACION',
-        opFinal: 224,
-        nContenedor: 'MMAU131365-2',
-        estado: 'EXPORTADO',
-        observaciones: 'FLM / Se asocia a la op...',
-      },
-    ];
-  });
-
-  // Guardamos automáticamente en localStorage cada vez que los rechazos cambien
-  useEffect(() => {
-    localStorage.setItem('rechazos_fho', JSON.stringify(rechazos));
-  }, [rechazos]);
-
+  const [rechazos, setRechazos] = useState<RechazoRecord[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -59,6 +26,61 @@ export const RechazosView: React.FC = () => {
     estado: '',
     observaciones: '',
   });
+
+  // Cargar registros y escuchar cambios en tiempo real desde Supabase
+  useEffect(() => {
+    fetchRechazos();
+
+    const channel = supabase
+      .channel('public:rechazos_records')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rechazos_records' },
+        () => {
+          fetchRechazos();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchRechazos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rechazos_records')
+        .select('*')
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+
+      const formatted: RechazoRecord[] = (data || []).map((r: any) => ({
+        id: r.id,
+        fecha: r.fecha || '',
+        numero: r.numero || 1,
+        lote: r.lote || '',
+        productor: r.productor || '',
+        tipoRechazo: r.tipo_rechazo || '',
+        folio: r.folio || '',
+        opInicial: r.op_inicial || '',
+        embalaje: r.embalaje || '',
+        fechaEmbalaje: r.fecha_embalaje || '',
+        procesoFho: r.proceso_fho || '',
+        opFinal: r.op_final || '',
+        nContenedor: r.n_contenedor || '',
+        estado: r.estado || '',
+        observaciones: r.observaciones || '',
+      }));
+
+      setRechazos(formatted);
+    } catch (err) {
+      console.error('Error al cargar rechazos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
@@ -110,29 +132,62 @@ export const RechazosView: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = async (id: string) => {
     if (window.confirm('¿Estás seguro de que deseas eliminar este registro de rechazo?')) {
-      setRechazos(rechazos.filter((item) => item.id !== id));
+      try {
+        const { error } = await supabase.from('rechazos_records').delete().eq('id', id);
+        if (error) throw error;
+        fetchRechazos();
+      } catch (err) {
+        console.error('Error al eliminar:', err);
+        alert('No se pudo eliminar el registro de la base de datos.');
+      }
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (editingId) {
-      // Editar registro existente
-      setRechazos(
-        rechazos.map((item) => (item.id === editingId ? { ...formData, id: editingId } : item))
-      );
-    } else {
-      // Crear nuevo registro
-      const nuevoRegistro: RechazoRecord = {
-        ...formData,
-        id: Date.now().toString(),
+    try {
+      const payload = {
+        fecha: formData.fecha,
+        numero: Number(formData.numero) || 1,
+        lote: formData.lote,
+        productor: formData.productor,
+        tipo_rechazo: formData.tipoRechazo,
+        folio: formData.folio,
+        op_inicial: formData.opInicial,
+        embalaje: formData.embalaje,
+        fecha_embalaje: formData.fechaEmbalaje,
+        proceso_fho: formData.procesoFho,
+        op_final: formData.opFinal,
+        n_contenedor: formData.nContenedor,
+        estado: formData.estado,
+        observaciones: formData.observaciones,
       };
-      setRechazos([nuevoRegistro, ...rechazos]);
+
+      if (editingId) {
+        // Actualizar en Supabase
+        const { error } = await supabase
+          .from('rechazos_records')
+          .update(payload)
+          .eq('id', editingId);
+        if (error) throw error;
+      } else {
+        // Insertar nuevo en Supabase
+        const newId = Date.now().toString();
+        const { error } = await supabase
+          .from('rechazos_records')
+          .insert([{ id: newId, ...payload }]);
+        if (error) throw error;
+      }
+
+      setShowModal(false);
+      setEditingId(null);
+      fetchRechazos();
+    } catch (err) {
+      console.error('Error al guardar en Supabase:', err);
+      alert('Hubo un error al guardar en la base de datos.');
     }
-    setShowModal(false);
-    setEditingId(null);
   };
 
   const filteredRechazos = rechazos.filter((item) =>
@@ -145,13 +200,24 @@ export const RechazosView: React.FC = () => {
     alert('Exportando detalle de rechazos a Excel...');
   };
 
+  if (loading) {
+    return (
+      <div className="flex h-96 w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+          <p className="text-xs font-medium text-gray-500">Cargando rechazos desde Supabase...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="p-6 max-w-full mx-auto space-y-6">
       {/* Cabecera del Módulo */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-white p-4 rounded-xl shadow-sm border border-slate-100">
         <div>
           <h2 className="text-xl font-bold text-slate-800">Detalle de Rechazos ASQUE</h2>
-          <p className="text-sm text-slate-500">Monitoreo y control oficial de rechazos de fruta a granel y empaque.</p>
+          <p className="text-sm text-slate-500">Monitoreo y control oficial de rechazos de fruta a granel y empaque (Sincronizado con Supabase).</p>
         </div>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <button
@@ -263,7 +329,7 @@ export const RechazosView: React.FC = () => {
             ) : (
               <tr>
                 <td colSpan={15} className="text-center py-8 text-slate-400">
-                  No hay registros de rechazos disponibles.
+                  No hay registros de rechazos disponibles en la base de datos.
                 </td>
               </tr>
             )}
