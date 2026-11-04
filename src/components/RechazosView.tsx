@@ -51,7 +51,7 @@ export const RechazosView: React.FC = () => {
       const { data, error } = await supabase
         .from('rechazos_records')
         .select('*')
-        .order('created_at', { ascending: true });
+        .order('numero', { ascending: true });
 
       if (error) throw error;
 
@@ -91,9 +91,14 @@ export const RechazosView: React.FC = () => {
 
   const handleOpenCreate = () => {
     setEditingId(null);
+    // Calcular automáticamente el siguiente número correlativo
+    const nextNumero = rechazos.length > 0 
+      ? Math.max(...rechazos.map(r => Number(r.numero) || 0)) + 1 
+      : 1;
+
     setFormData({
       fecha: '',
-      numero: rechazos.length + 1,
+      numero: nextNumero,
       lote: '',
       productor: '',
       tipoRechazo: '',
@@ -267,14 +272,14 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla de Registros con Títulos Centrados y Estructurados */}
+      {/* Tabla con el nuevo orden de columnas */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
-                <th className="p-3.5 text-center">Fecha</th>
                 <th className="p-3.5 text-center">N°</th>
+                <th className="p-3.5 text-center">Fecha</th>
                 <th className="p-3.5 text-center">Lote</th>
                 <th className="p-3.5 text-center">Productor</th>
                 <th className="p-3.5 text-center">Tipo Rechazo</th>
@@ -294,8 +299,8 @@ export const RechazosView: React.FC = () => {
               {filteredRechazos.length > 0 ? (
                 filteredRechazos.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                    <td className="p-3.5 text-center font-bold text-slate-900">{item.numero}</td>
                     <td className="p-3.5 text-center">{item.fecha}</td>
-                    <td className="p-3.5 text-center font-medium">{item.numero}</td>
                     <td className="p-3.5 text-center">{item.lote}</td>
                     <td className="p-3.5 text-center font-medium text-slate-900">{item.productor}</td>
                     <td className="p-3.5 text-center">
@@ -361,9 +366,13 @@ export const RechazosView: React.FC = () => {
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-bold text-slate-800 mb-4">
-              {editingId ? 'Editar Registro de Rechazo' : 'Nuevo Registro de Rechazo'}
+              {editingId ? 'Editar Registro de Rechazo' : `Nuevo Registro de Rechazo (N° ${formData.numero})`}
             </h3>
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+              <div>
+                <label className="block text-slate-600 font-medium mb-1">N° Correlativo</label>
+                <input type="number" name="numero" value={formData.numero} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-slate-50" />
+              </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha</label>
                 <input type="text" name="fecha" placeholder="Ej: 12-12-25" value={formData.fecha ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
@@ -372,13 +381,13 @@ export const RechazosView: React.FC = () => {
                 <label className="block text-slate-600 font-medium mb-1">Lote</label>
                 <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
-              <div className="md:col-span-2">
-                <label className="block text-slate-600 font-medium mb-1">Productor</label>
-                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
-              </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Tipo de Rechazo</label>
                 <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-slate-600 font-medium mb-1">Productor</label>
+                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Folio</label>
