@@ -218,7 +218,7 @@ export const RechazosView: React.FC = () => {
 
   return (
     <div className="space-y-6 w-full max-w-full">
-      {/* Barra de Búsqueda y Acciones estilo Granel FHO */}
+      {/* Barra de Búsqueda y Acciones */}
       <div className="flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm border border-slate-100 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative flex-1 max-w-xl">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -259,7 +259,7 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de Indicadores / Resumen estilo Granel FHO */}
+      {/* Barra de Indicadores */}
       <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
         <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm whitespace-nowrap">
           <span className="text-xs font-medium text-slate-500">Total Registros:</span>
@@ -267,26 +267,26 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla de Registros */}
+      {/* Tabla de Registros con Títulos Centrados y Estructurados */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full text-left border-collapse text-xs">
+          <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
-                <th className="p-3.5">Fecha</th>
-                <th className="p-3.5">N°</th>
-                <th className="p-3.5">Lote</th>
-                <th className="p-3.5">Productor</th>
-                <th className="p-3.5">Tipo Rechazo</th>
-                <th className="p-3.5">Folio</th>
-                <th className="p-3.5">OP Inicial</th>
-                <th className="p-3.5">Embalaje</th>
-                <th className="p-3.5">F. Embalaje</th>
-                <th className="p-3.5">Proceso FHO</th>
-                <th className="p-3.5">OP Final</th>
-                <th className="p-3.5">N° Contenedor</th>
-                <th className="p-3.5">Estado</th>
-                <th className="p-3.5">Observaciones</th>
+                <th className="p-3.5 text-center">Fecha</th>
+                <th className="p-3.5 text-center">N°</th>
+                <th className="p-3.5 text-center">Lote</th>
+                <th className="p-3.5 text-center">Productor</th>
+                <th className="p-3.5 text-center">Tipo Rechazo</th>
+                <th className="p-3.5 text-center">Folio</th>
+                <th className="p-3.5 text-center">OP Inicial</th>
+                <th className="p-3.5 text-center">Embalaje</th>
+                <th className="p-3.5 text-center">F. Embalaje</th>
+                <th className="p-3.5 text-center">Proceso FHO</th>
+                <th className="p-3.5 text-center">OP Final</th>
+                <th className="p-3.5 text-center">N° Contenedor</th>
+                <th className="p-3.5 text-center">Estado</th>
+                <th className="p-3.5 text-center">Observaciones</th>
                 <th className="p-3.5 text-center">Acciones</th>
               </tr>
             </thead>
@@ -294,36 +294,36 @@ export const RechazosView: React.FC = () => {
               {filteredRechazos.length > 0 ? (
                 filteredRechazos.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="p-3.5">{item.fecha}</td>
-                    <td className="p-3.5 font-medium">{item.numero}</td>
-                    <td className="p-3.5">{item.lote}</td>
-                    <td className="p-3.5 font-medium text-slate-900">{item.productor}</td>
-                    <td className="p-3.5">
+                    <td className="p-3.5 text-center">{item.fecha}</td>
+                    <td className="p-3.5 text-center font-medium">{item.numero}</td>
+                    <td className="p-3.5 text-center">{item.lote}</td>
+                    <td className="p-3.5 text-center font-medium text-slate-900">{item.productor}</td>
+                    <td className="p-3.5 text-center">
                       {item.tipoRechazo ? (
-                        <span className="px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
+                        <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
                           {item.tipoRechazo}
                         </span>
                       ) : (
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="p-3.5">{item.folio}</td>
-                    <td className="p-3.5">{item.opInicial}</td>
-                    <td className="p-3.5">{item.embalaje}</td>
-                    <td className="p-3.5">{item.fechaEmbalaje}</td>
-                    <td className="p-3.5">{item.procesoFho}</td>
-                    <td className="p-3.5">{item.opFinal}</td>
-                    <td className="p-3.5 font-mono">{item.nContenedor}</td>
-                    <td className="p-3.5">
+                    <td className="p-3.5 text-center">{item.folio}</td>
+                    <td className="p-3.5 text-center">{item.opInicial}</td>
+                    <td className="p-3.5 text-center">{item.embalaje}</td>
+                    <td className="p-3.5 text-center">{item.fechaEmbalaje}</td>
+                    <td className="p-3.5 text-center">{item.procesoFho}</td>
+                    <td className="p-3.5 text-center">{item.opFinal}</td>
+                    <td className="p-3.5 text-center font-mono">{item.nContenedor}</td>
+                    <td className="p-3.5 text-center">
                       {item.estado ? (
-                        <span className="px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
+                        <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
                           {item.estado}
                         </span>
                       ) : (
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-slate-500">{item.observaciones}</td>
+                    <td className="p-3.5 text-center text-slate-500">{item.observaciones}</td>
                     <td className="p-3.5 text-center">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
