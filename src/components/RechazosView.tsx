@@ -46,7 +46,10 @@ export const RechazosView: React.FC = () => {
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
 
   const handleOpenCreate = () => {
@@ -73,20 +76,20 @@ export const RechazosView: React.FC = () => {
   const handleOpenEdit = (item: RechazoRecord) => {
     setEditingId(item.id);
     setFormData({
-      fecha: item.fecha,
-      numero: item.numero,
-      lote: item.lote,
-      productor: item.productor,
-      tipoRechazo: item.tipoRechazo,
-      folio: item.folio,
-      opInicial: item.opInicial,
-      embalaje: item.embalaje,
-      fechaEmbalaje: item.fechaEmbalaje,
-      procesoFho: item.procesoFho,
-      opFinal: item.opFinal,
-      nContenedor: item.nContenedor,
-      estado: item.estado,
-      observaciones: item.observaciones,
+      fecha: item.fecha ?? '',
+      numero: item.numero ?? 1,
+      lote: item.lote ?? '',
+      productor: item.productor ?? '',
+      tipoRechazo: item.tipoRechazo ?? '',
+      folio: item.folio ?? '',
+      opInicial: item.opInicial ?? '',
+      embalaje: item.embalaje ?? '',
+      fechaEmbalaje: item.fechaEmbalaje ?? '',
+      procesoFho: item.procesoFho ?? '',
+      opFinal: item.opFinal ?? '',
+      nContenedor: item.nContenedor ?? '',
+      estado: item.estado ?? '',
+      observaciones: item.observaciones ?? '',
     });
     setShowModal(true);
   };
@@ -254,55 +257,55 @@ export const RechazosView: React.FC = () => {
             <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha</label>
-                <input type="text" name="fecha" placeholder="Ej: 12-12-25" value={formData.fecha} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="fecha" placeholder="Ej: 12-12-25" value={formData.fecha ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Lote</label>
-                <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-slate-600 font-medium mb-1">Productor</label>
-                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="productor" placeholder="Ej: AGRICOLA AGROBERRIES SPA..." value={formData.productor ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Tipo de Rechazo</label>
-                <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Folio</label>
-                <input type="text" name="folio" placeholder="Ej: 4686" value={formData.folio} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
+                <input type="text" name="folio" placeholder="Ej: 4686" value={formData.folio ?? ''} onChange={handleInputChange} required className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Inicial</label>
-                <input type="text" name="opInicial" placeholder="Ej: 224" value={formData.opInicial} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="opInicial" placeholder="Ej: 224" value={formData.opInicial ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Embalaje</label>
-                <input type="text" name="embalaje" placeholder="Ej: 12 X 1 PTNA R/F" value={formData.embalaje} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="embalaje" placeholder="Ej: 12 X 1 PTNA R/F" value={formData.embalaje ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Fecha Embalaje</label>
-                <input type="text" name="fechaEmbalaje" placeholder="Ej: 10-12-25" value={formData.fechaEmbalaje} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="fechaEmbalaje" placeholder="Ej: 10-12-25" value={formData.fechaEmbalaje ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Proceso FHO</label>
-                <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Final</label>
-                <input type="text" name="opFinal" placeholder="Ej: 224" value={formData.opFinal} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="opFinal" placeholder="Ej: 224" value={formData.opFinal ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Contenedor</label>
-                <input type="text" name="nContenedor" placeholder="Ej: MMAU131365-2" value={formData.nContenedor} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="nContenedor" placeholder="Ej: MMAU131365-2" value={formData.nContenedor ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Estado</label>
-                <input type="text" name="estado" placeholder="Ej: EXPORTADO" value={formData.estado} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="estado" placeholder="Ej: EXPORTADO" value={formData.estado ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div className="md:col-span-2">
                 <label className="block text-slate-600 font-medium mb-1">Observaciones</label>
-                <input type="text" name="observaciones" placeholder="Ej: FLM / Se asocia a..." value={formData.observaciones} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
+                <input type="text" name="observaciones" placeholder="Ej: FLM / Se asocia a..." value={formData.observaciones ?? ''} onChange={handleInputChange} className="w-full border p-2 rounded-lg" />
               </div>
               <div className="md:col-span-2 flex justify-end gap-3 mt-4">
                 <button type="button" onClick={() => setShowModal(false)} className="px-4 py-2 border rounded-lg text-slate-600 hover:bg-slate-50">Cancelar</button>
