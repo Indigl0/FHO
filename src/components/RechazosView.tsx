@@ -91,7 +91,6 @@ export const RechazosView: React.FC = () => {
 
   const handleOpenCreate = () => {
     setEditingId(null);
-    // Calcular automáticamente el siguiente número correlativo
     const nextNumero = rechazos.length > 0 
       ? Math.max(...rechazos.map(r => Number(r.numero) || 0)) + 1 
       : 1;
@@ -272,38 +271,38 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla con el nuevo orden de columnas */}
+      {/* Tabla con el orden de columnas reorganizado y optimizado en espacios */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
-                <th className="p-3.5 text-center">N°</th>
-                <th className="p-3.5 text-center">Fecha</th>
-                <th className="p-3.5 text-center">Lote</th>
-                <th className="p-3.5 text-center">Productor</th>
-                <th className="p-3.5 text-center">Tipo Rechazo</th>
-                <th className="p-3.5 text-center">Folio</th>
-                <th className="p-3.5 text-center">OP Inicial</th>
-                <th className="p-3.5 text-center">Embalaje</th>
-                <th className="p-3.5 text-center">F. Embalaje</th>
-                <th className="p-3.5 text-center">Proceso FHO</th>
-                <th className="p-3.5 text-center">OP Final</th>
-                <th className="p-3.5 text-center">N° Contenedor</th>
-                <th className="p-3.5 text-center">Estado</th>
-                <th className="p-3.5 text-center">Observaciones</th>
-                <th className="p-3.5 text-center">Acciones</th>
+                <th className="py-3.5 px-2 text-center whitespace-nowrap w-12">N°</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Fecha</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Lote</th>
+                <th className="py-3.5 px-4 text-left min-w-[220px]">Productor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">T. Rechazo</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Folio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Proceso</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Final</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Contenedor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Estado</th>
+                <th className="py-3.5 px-4 text-left min-w-[150px]">Observaciones</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap w-20">Acciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredRechazos.length > 0 ? (
                 filteredRechazos.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="p-3.5 text-center font-bold text-slate-900">{item.numero}</td>
-                    <td className="p-3.5 text-center">{item.fecha}</td>
-                    <td className="p-3.5 text-center">{item.lote}</td>
-                    <td className="p-3.5 text-center font-medium text-slate-900">{item.productor}</td>
-                    <td className="p-3.5 text-center">
+                    <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.fecha}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.lote}</td>
+                    <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
                       {item.tipoRechazo ? (
                         <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
                           {item.tipoRechazo}
@@ -312,14 +311,14 @@ export const RechazosView: React.FC = () => {
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-center">{item.folio}</td>
-                    <td className="p-3.5 text-center">{item.opInicial}</td>
-                    <td className="p-3.5 text-center">{item.embalaje}</td>
-                    <td className="p-3.5 text-center">{item.fechaEmbalaje}</td>
-                    <td className="p-3.5 text-center">{item.procesoFho}</td>
-                    <td className="p-3.5 text-center">{item.opFinal}</td>
-                    <td className="p-3.5 text-center font-mono">{item.nContenedor}</td>
-                    <td className="p-3.5 text-center">
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.folio}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.procesoFho}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.opFinal}</td>
+                    <td className="py-3 px-3 text-center font-mono whitespace-nowrap">{item.nContenedor}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
                       {item.estado ? (
                         <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
                           {item.estado}
@@ -328,8 +327,8 @@ export const RechazosView: React.FC = () => {
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="p-3.5 text-center text-slate-500">{item.observaciones}</td>
-                    <td className="p-3.5 text-center">
+                    <td className="py-3 px-4 text-slate-500">{item.observaciones}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
                           onClick={() => handleOpenEdit(item)}
@@ -382,7 +381,7 @@ export const RechazosView: React.FC = () => {
                 <input type="text" name="lote" placeholder="Ej: 118" value={formData.lote ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Tipo de Rechazo</label>
+                <label className="block text-slate-600 font-medium mb-1">T. Rechazo</label>
                 <input type="text" name="tipoRechazo" placeholder="Ej: SAG - USDA" value={formData.tipoRechazo ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div className="md:col-span-2">
@@ -394,7 +393,7 @@ export const RechazosView: React.FC = () => {
                 <input type="text" name="folio" placeholder="Ej: 4686" value={formData.folio ?? ''} onChange={handleInputChange} required className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">OP Inicial</label>
+                <label className="block text-slate-600 font-medium mb-1">OP Inc</label>
                 <input type="text" name="opInicial" placeholder="Ej: 224" value={formData.opInicial ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
@@ -402,11 +401,11 @@ export const RechazosView: React.FC = () => {
                 <input type="text" name="embalaje" placeholder="Ej: 12 X 1 PTNA R/F" value={formData.embalaje ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Fecha Embalaje</label>
+                <label className="block text-slate-600 font-medium mb-1">F. Embalaje</label>
                 <input type="text" name="fechaEmbalaje" placeholder="Ej: 10-12-25" value={formData.fechaEmbalaje ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">Proceso FHO</label>
+                <label className="block text-slate-600 font-medium mb-1">Proceso</label>
                 <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
@@ -414,7 +413,7 @@ export const RechazosView: React.FC = () => {
                 <input type="text" name="opFinal" placeholder="Ej: 224" value={formData.opFinal ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">N° Contenedor</label>
+                <label className="block text-slate-600 font-medium mb-1">Contenedor</label>
                 <input type="text" name="nContenedor" placeholder="Ej: MMAU131365-2" value={formData.nContenedor ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
