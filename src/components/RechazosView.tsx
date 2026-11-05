@@ -271,7 +271,7 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla con el bloque FHO resaltado con un color más notorio */}
+      {/* Tabla con el bloque FHO resaltado y color naranja suave en T. Rechazo */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
@@ -286,7 +286,7 @@ export const RechazosView: React.FC = () => {
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
-                {/* Bloque FHO con color más notorio */}
+                {/* Bloque FHO con color notorio */}
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
@@ -305,7 +305,7 @@ export const RechazosView: React.FC = () => {
                     <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">
                       {item.tipoRechazo ? (
-                        <span className="inline-block px-2 py-1 bg-amber-100 text-amber-800 rounded font-medium">
+                        <span className="inline-block px-2.5 py-1 bg-orange-100 text-orange-800 rounded font-medium">
                           {item.tipoRechazo}
                         </span>
                       ) : (
@@ -316,7 +316,7 @@ export const RechazosView: React.FC = () => {
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
-                    {/* Celdas del bloque FHO con color más notorio */}
+                    {/* Celdas del bloque FHO */}
                     <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100">{item.procesoFho}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
                     <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
