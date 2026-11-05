@@ -271,7 +271,7 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla con el bloque FHO resaltado en color diferente */}
+      {/* Tabla con el bloque FHO resaltado con un color más notorio */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
@@ -286,12 +286,12 @@ export const RechazosView: React.FC = () => {
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
-                {/* Bloque FHO con color distintivo */}
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50/80 text-blue-900 border-x border-blue-100">Proceso</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50/80 text-blue-900 border-r border-blue-100">OP Final</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50/80 text-blue-900 border-r border-blue-100">Contenedor</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50/80 text-blue-900 border-r border-blue-100">Estado</th>
-                <th className="py-3.5 px-4 text-left min-w-[150px] bg-blue-50/80 text-blue-900">Observaciones</th>
+                {/* Bloque FHO con color más notorio */}
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Estado</th>
+                <th className="py-3.5 px-4 text-left min-w-[150px] bg-blue-100 text-blue-900">Observaciones</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap w-20">Acciones</th>
               </tr>
             </thead>
@@ -316,11 +316,11 @@ export const RechazosView: React.FC = () => {
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
-                    {/* Celdas del bloque FHO con color distintivo */}
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/30 border-x border-blue-50">{item.procesoFho}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/30 border-r border-blue-50">{item.opFinal}</td>
-                    <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50/30 border-r border-blue-50">{item.nContenedor}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/30 border-r border-blue-50">
+                    {/* Celdas del bloque FHO con color más notorio */}
+                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100">{item.procesoFho}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
+                    <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
+                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
                       {item.estado ? (
                         <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
                           {item.estado}
@@ -329,7 +329,7 @@ export const RechazosView: React.FC = () => {
                         <span className="text-slate-400">-</span>
                       )}
                     </td>
-                    <td className="py-3 px-4 text-slate-600 bg-blue-50/30">{item.observaciones}</td>
+                    <td className="py-3 px-4 text-slate-700 bg-blue-50">{item.observaciones}</td>
                     <td className="py-3 px-3 text-center whitespace-nowrap">
                       <div className="flex items-center justify-center gap-1.5">
                         <button
