@@ -197,16 +197,77 @@ export const RechazosView: React.FC = () => {
     )
   );
 
+  const exportToExcel = () => {
+    if (filteredRechazos.length === 0) {
+      alert('No hay registros para exportar.');
+      return;
+    }
+
+    const headers = [
+      'N°',
+      'Fecha',
+      'Lote',
+      'Productor',
+      'T. Rechazo',
+      'Folio',
+      'OP Inc',
+      'Embalaje',
+      'F. Embalaje',
+      'Proceso',
+      'OP Final',
+      'Contenedor',
+      'Estado',
+      'Observaciones'
+    ];
+
+    const rows = filteredRechazos.map((item) => [
+      item.numero ?? '',
+      `"${String(item.fecha || '').replace(/"/g, '""')}"`,
+      `"${String(item.lote || '').replace(/"/g, '""')}"`,
+      `"${String(item.productor || '').replace(/"/g, '""')}"`,
+      `"${String(item.tipoRechazo || '').replace(/"/g, '""')}"`,
+      `"${String(item.folio || '').replace(/"/g, '""')}"`,
+      `"${String(item.opInicial || '').replace(/"/g, '""')}"`,
+      `"${String(item.embalaje || '').replace(/"/g, '""')}"`,
+      `"${String(item.fechaEmbalaje || '').replace(/"/g, '""')}"`,
+      `"${String(item.procesoFho || '').replace(/"/g, '""')}"`,
+      `"${String(item.opFinal || '').replace(/"/g, '""')}"`,
+      `"${String(item.nContenedor || '').replace(/"/g, '""')}"`,
+      `"${String(item.estado || '').replace(/"/g, '""')}"`,
+      `"${String(item.observaciones || '').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = [
+      headers.join(';'),
+      ...rows.map(e => e.join(';'))
+    ].join('\n');
+
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `Consolidado_Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const exportToCSV = () => {
-    alert('Exportando rechazos a CSV...');
+    exportToExcel();
   };
 
   const exportToJSON = () => {
-    alert('Exportando rechazos a JSON...');
-  };
-
-  const exportToExcel = () => {
-    alert('Exportando detalle de rechazos a Excel profesional...');
+    if (filteredRechazos.length === 0) {
+      alert('No hay registros para exportar.');
+      return;
+    }
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredRechazos, null, 2));
+    const downloadAnchor = document.createElement('a');
+    downloadAnchor.setAttribute("href", dataStr);
+    downloadAnchor.setAttribute("download", `Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.json`);
+    document.body.appendChild(downloadAnchor);
+    downloadAnchor.click();
+    downloadAnchor.remove();
   };
 
   if (loading) {
