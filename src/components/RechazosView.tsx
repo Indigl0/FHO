@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
-import { Pencil, Trash2, Plus, Download, Search, FileSpreadsheet, FileCode } from 'lucide-react';
+import { Pencil, Trash2, Plus, Download, Search, FileSpreadsheet, FileCode, MessageSquare } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 
 export const RechazosView: React.FC = () => {
@@ -197,63 +197,88 @@ export const RechazosView: React.FC = () => {
     )
   );
 
-  const exportToExcel = () => {
-    if (filteredRechazos.length === 0) {
-      alert('No hay registros para exportar.');
-      return;
-    }
+  const exportExcelPro = () => {
+    const htmlTable = `
+      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
+      <head>
+        <meta charset="UTF-8">
+        <!--[if gte mso 9]>
+        <xml>
+         <x:ExcelWorkbook>
+          <x:ExcelWorksheets>
+           <x:ExcelWorksheet>
+            <x:Name>Consolidado Rechazos ASQUE</x:Name>
+            <x:WorksheetOptions>
+             <x:DisplayGridlines/>
+            </x:WorksheetOptions>
+           </x:ExcelWorksheet>
+          </x:ExcelWorksheets>
+         </x:ExcelWorkbook>
+        </xml>
+        <![endif]-->
+        <style>
+          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; width: 100%; }
+          th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 8px 10px; text-align: center; vertical-align: middle; }
+          td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: middle; color: #334155; }
+          .text { text-align: left; }
+          .center { text-align: center; }
+          .bold { font-weight: bold; }
+        </style>
+      </head>
+      <body>
+        <table>
+          <thead>
+            <tr>
+              <th>N°</th>
+              <th>Fecha</th>
+              <th>Lote</th>
+              <th>Productor</th>
+              <th>T. Rechazo</th>
+              <th>Folio</th>
+              <th>OP Inc</th>
+              <th>Embalaje</th>
+              <th>F. Embalaje</th>
+              <th style="background-color: #1e3b8a; color: white;">Proceso</th>
+              <th style="background-color: #1e3b8a; color: white;">OP Final</th>
+              <th style="background-color: #1e3b8a; color: white;">Contenedor</th>
+              <th style="background-color: #1e3b8a; color: white;">Estado</th>
+              <th style="background-color: #1e3b8a; color: white;">Observaciones</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${filteredRechazos.map((item: any) => `
+              <tr>
+                <td class="center bold">${item.numero || ''}</td>
+                <td class="center">${item.fecha || ''}</td>
+                <td class="center">${item.lote || ''}</td>
+                <td class="text bold">${item.productor || ''}</td>
+                <td class="center" style="background-color: #ffedd5; color: #9a3412; font-weight: bold;">${item.tipoRechazo || ''}</td>
+                <td class="center">${item.folio || ''}</td>
+                <td class="center">${item.opInicial || ''}</td>
+                <td class="center">${item.embalaje || ''}</td>
+                <td class="center">${item.fechaEmbalaje || ''}</td>
+                <td class="center" style="background-color: #eff6ff;">${item.procesoFho || ''}</td>
+                <td class="center" style="background-color: #eff6ff;">${item.opFinal || ''}</td>
+                <td class="center" style="background-color: #eff6ff; font-family: monospace;">${item.nContenedor || ''}</td>
+                <td class="center" style="background-color: #eff6ff; color: #166534; font-weight: bold;">${item.estado || ''}</td>
+                <td class="text" style="background-color: #eff6ff;">${item.observaciones || ''}</td>
+              </tr>
+            `).join('')}
+          </tbody>
+        </table>
+      </body>
+      </html>
+    `;
 
-    const headers = [
-      'N°',
-      'Fecha',
-      'Lote',
-      'Productor',
-      'T. Rechazo',
-      'Folio',
-      'OP Inc',
-      'Embalaje',
-      'F. Embalaje',
-      'Proceso',
-      'OP Final',
-      'Contenedor',
-      'Estado',
-      'Observaciones'
-    ];
-
-    const rows = filteredRechazos.map((item) => [
-      item.numero ?? '',
-      `"${String(item.fecha || '').replace(/"/g, '""')}"`,
-      `"${String(item.lote || '').replace(/"/g, '""')}"`,
-      `"${String(item.productor || '').replace(/"/g, '""')}"`,
-      `"${String(item.tipoRechazo || '').replace(/"/g, '""')}"`,
-      `"${String(item.folio || '').replace(/"/g, '""')}"`,
-      `"${String(item.opInicial || '').replace(/"/g, '""')}"`,
-      `"${String(item.embalaje || '').replace(/"/g, '""')}"`,
-      `"${String(item.fechaEmbalaje || '').replace(/"/g, '""')}"`,
-      `"${String(item.procesoFho || '').replace(/"/g, '""')}"`,
-      `"${String(item.opFinal || '').replace(/"/g, '""')}"`,
-      `"${String(item.nContenedor || '').replace(/"/g, '""')}"`,
-      `"${String(item.estado || '').replace(/"/g, '""')}"`,
-      `"${String(item.observaciones || '').replace(/"/g, '""')}"`
-    ]);
-
-    const csvContent = [
-      headers.join(';'),
-      ...rows.map(e => e.join(';'))
-    ].join('\n');
-
-    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
+    const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel;charset=utf-8;' });
     const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Consolidado_Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const exportToCSV = () => {
-    exportToExcel();
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `Consolidado_Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.xls`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
   };
 
   const exportToJSON = () => {
@@ -298,22 +323,16 @@ export const RechazosView: React.FC = () => {
 
         <div className="flex flex-wrap items-center gap-2">
           <button
-            onClick={exportToCSV}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
+            onClick={exportExcelPro}
+            className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
           >
-            <FileSpreadsheet className="h-4 w-4 text-emerald-600" /> CSV
+            <Download className="h-4 w-4" /> Exportar Excel Profesional (.xls)
           </button>
           <button
             onClick={exportToJSON}
             className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
           >
             <FileCode className="h-4 w-4 text-blue-600" /> JSON
-          </button>
-          <button
-            onClick={exportToExcel}
-            className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
-          >
-            <Download className="h-4 w-4" /> Exportar Excel
           </button>
           <button
             onClick={handleOpenCreate}
@@ -347,7 +366,7 @@ export const RechazosView: React.FC = () => {
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
-                {/* Bloque FHO con color notorio */}
+                {/* Bloque FHO con color más notorio */}
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
