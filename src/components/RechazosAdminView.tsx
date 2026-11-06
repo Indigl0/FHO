@@ -3,7 +3,7 @@ import { RechazoRecord } from '../types';
 import { Pencil, Trash2, Plus, Search, FileCode, Layers, Package } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 
-export const RechazosView: React.FC = () => {
+export const RechazosAdminView: React.FC = () => {
   const [rechazos, setRechazos] = useState<RechazoRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
