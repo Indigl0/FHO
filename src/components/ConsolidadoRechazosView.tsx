@@ -73,7 +73,6 @@ export const ConsolidadoRechazosView: React.FC = () => {
   const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
   const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
 
-  // El Excel SÍ incluye absolutamente todo el detalle completo
   const exportExcelPro = () => {
     const htmlTable = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -194,7 +193,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
         </p>
       </div>
 
-      {/* Tarjetas Indicadoras */}
+      {/* Tarjetas Indicadoras (Cuadrados de Resúmenes) */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div>
@@ -260,23 +259,29 @@ export const ConsolidadoRechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla limpia y legible para la vista pública en pantalla */}
+      {/* Tabla detallada completa en pantalla (con todas las columnas) */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
             <thead>
               <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
+                <th className="py-3.5 px-2 text-center whitespace-nowrap w-12">N°</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Fecha</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Lote</th>
                 <th className="py-3.5 px-4 text-left min-w-[200px]">Productor</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">T. Rechazo</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Folio</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50 text-blue-900 border-x border-blue-100">Proceso</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50 text-blue-900 border-r border-blue-100">Recillas FHO</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-50 text-blue-900 border-r border-blue-100">Recillas Acopio</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-950 border-r border-blue-200 font-bold">Total</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap">Estado</th>
-                <th className="py-3.5 px-4 text-left min-w-[150px]">Observaciones</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas FHO</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas Acopio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-200 text-blue-950 border-r border-blue-300 font-black">Total</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Estado</th>
+                <th className="py-3.5 px-4 text-left min-w-[150px] bg-blue-100 text-blue-900">Observaciones</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
@@ -288,6 +293,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
 
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                      <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.fecha}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.lote}</td>
                       <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
@@ -301,13 +307,18 @@ export const ConsolidadoRechazosView: React.FC = () => {
                         )}
                       </td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.folio}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/50 border-r border-blue-100 font-semibold">{item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50/50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-100/60 border-r border-blue-200 font-bold text-blue-900">
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-100/70 border-r border-blue-200 font-bold text-blue-900">
                         {totalRec > 0 ? totalRec : '-'}
                       </td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
+                      <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
                         {item.estado ? (
                           <span className={`inline-block px-2 py-1 rounded font-medium ${
                             isPendiente 
@@ -322,13 +333,13 @@ export const ConsolidadoRechazosView: React.FC = () => {
                           <span className="text-slate-400">-</span>
                         )}
                       </td>
-                      <td className="py-3 px-4 text-slate-700">{item.observaciones}</td>
+                      <td className="py-3 px-4 text-slate-700 bg-blue-50">{item.observaciones}</td>
                     </tr>
                   );
                 })
               ) : (
                 <tr>
-                  <td colSpan={11} className="text-center py-12 text-slate-400">
+                  <td colSpan={17} className="text-center py-12 text-slate-400">
                     No hay registros disponibles en el consolidado.
                   </td>
                 </tr>
