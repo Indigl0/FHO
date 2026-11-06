@@ -5,7 +5,7 @@ import { supabase } from './utils/supabase';
 import GranelFHO from './components/GranelFHO';
 import Consolidado from './components/ConsolidadoView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
-import { RechazosView } from './components/RechazosView';
+import { RechazosAdminView } from './components/RechazosAdminView';
 import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
 
 // ==========================================
@@ -226,7 +226,7 @@ function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación */}
+          {/* Menú de Navegación Limpio y Ordenado */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
               {userRole === 'admin' && !isOperator && (
@@ -275,7 +275,7 @@ function App() {
 
         <main className="w-full px-6 py-6">
           {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
-          {userRole === 'admin' && view === 'rechazos' && <RechazosView />}
+          {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
           {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <Consolidado records={records} />}
