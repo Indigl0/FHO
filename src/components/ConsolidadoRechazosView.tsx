@@ -259,7 +259,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla detallada completa en pantalla (con todas las columnas) */}
+      {/* Tabla detallada completa en pantalla */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
