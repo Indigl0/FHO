@@ -226,7 +226,7 @@ function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación con la nueva vista pública */}
+          {/* Menú de Navegación con el título actualizado */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
               {userRole === 'admin' && !isOperator && (
@@ -249,7 +249,7 @@ function App() {
                 active={view === 'consolidado-rechazos'}
                 onClick={() => setView('consolidado-rechazos')}
                 icon={<BarChart4 className="h-4 w-4" />}
-                label="Consolidado Rechazos"
+                label="Consolidado Rechazos ASQUE"
               />
 
               {userRole === 'admin' && (
