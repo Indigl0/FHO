@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
-import { Pencil, Trash2, Plus, Download, Search, FileSpreadsheet, FileCode, MessageSquare } from 'lucide-react';
+import { Pencil, Trash2, Plus, Download, Search, FileCode, Layers, Package } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 
 export const RechazosView: React.FC = () => {
@@ -10,7 +10,7 @@ export const RechazosView: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
-  const [formData, setFormData] = useState<Omit<RechazoRecord, 'id'>>({
+  const [formData, setFormData] = useState({
     fecha: '',
     numero: 1,
     lote: '',
@@ -21,6 +21,8 @@ export const RechazosView: React.FC = () => {
     embalaje: '',
     fechaEmbalaje: '',
     procesoFho: '',
+    nRecillasFho: 0,
+    nRecillasAcopio: 0,
     opFinal: '',
     nContenedor: '',
     estado: '',
@@ -55,7 +57,7 @@ export const RechazosView: React.FC = () => {
 
       if (error) throw error;
 
-      const formatted: RechazoRecord[] = (data || []).map((r: any) => ({
+      const formatted: any[] = (data || []).map((r: any) => ({
         id: r.id,
         fecha: r.fecha || '',
         numero: r.numero || 1,
@@ -67,6 +69,8 @@ export const RechazosView: React.FC = () => {
         embalaje: r.embalaje || '',
         fechaEmbalaje: r.fecha_embalaje || '',
         procesoFho: r.proceso_fho || '',
+        nRecillasFho: Number(r.n_recillas_fho) || 0,
+        nRecillasAcopio: Number(r.n_recillas_acopio) || 0,
         opFinal: r.op_final || '',
         nContenedor: r.n_contenedor || '',
         estado: r.estado || '',
@@ -82,10 +86,10 @@ export const RechazosView: React.FC = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
+    const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: value,
+      [name]: type === 'number' ? (value === '' ? 0 : Number(value)) : value,
     }));
   };
 
@@ -106,6 +110,8 @@ export const RechazosView: React.FC = () => {
       embalaje: '',
       fechaEmbalaje: '',
       procesoFho: '',
+      nRecillasFho: 0,
+      nRecillasAcopio: 0,
       opFinal: '',
       nContenedor: '',
       estado: '',
@@ -114,7 +120,7 @@ export const RechazosView: React.FC = () => {
     setShowModal(true);
   };
 
-  const handleOpenEdit = (item: RechazoRecord) => {
+  const handleOpenEdit = (item: any) => {
     setEditingId(item.id);
     setFormData({
       fecha: item.fecha ?? '',
@@ -127,6 +133,8 @@ export const RechazosView: React.FC = () => {
       embalaje: item.embalaje ?? '',
       fechaEmbalaje: item.fechaEmbalaje ?? '',
       procesoFho: item.procesoFho ?? '',
+      nRecillasFho: Number(item.nRecillasFho) || 0,
+      nRecillasAcopio: Number(item.nRecillasAcopio) || 0,
       opFinal: item.opFinal ?? '',
       nContenedor: item.nContenedor ?? '',
       estado: item.estado ?? '',
@@ -162,6 +170,8 @@ export const RechazosView: React.FC = () => {
         embalaje: formData.embalaje,
         fecha_embalaje: formData.fechaEmbalaje,
         proceso_fho: formData.procesoFho,
+        n_recillas_fho: Number(formData.nRecillasFho) || 0,
+        n_recillas_acopio: Number(formData.nRecillasAcopio) || 0,
         op_final: formData.opFinal,
         n_contenedor: formData.nContenedor,
         estado: formData.estado,
@@ -197,6 +207,12 @@ export const RechazosView: React.FC = () => {
     )
   );
 
+  // Totales generales para el Consolidado de Reembalajes
+  const totalReembalajesCount = rechazos.filter(r => String(r.procesoFho).toUpperCase().includes('REEMBALAJE') || (Number(r.nRecillasFho) > 0 || Number(r.nRecillasAcopio) > 0)).length;
+  const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
+  const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
+  const totalGeneralRecillas = totalRecillasFhoSum + totalRecillasAcopioSum;
+
   const exportExcelPro = () => {
     const htmlTable = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
@@ -223,6 +239,7 @@ export const RechazosView: React.FC = () => {
           .text { text-align: left; }
           .center { text-align: center; }
           .bold { font-weight: bold; }
+          .num { text-align: right; mso-number-format:"#,##0"; }
         </style>
       </head>
       <body>
@@ -239,6 +256,9 @@ export const RechazosView: React.FC = () => {
               <th>Embalaje</th>
               <th>F. Embalaje</th>
               <th style="background-color: #1e3b8a; color: white;">Proceso</th>
+              <th style="background-color: #1e3b8a; color: white;">N° Recillas FHO</th>
+              <th style="background-color: #1e3b8a; color: white;">N° Recillas Acopio</th>
+              <th style="background-color: #1e3b8a; color: white;">Total Recillas</th>
               <th style="background-color: #1e3b8a; color: white;">OP Final</th>
               <th style="background-color: #1e3b8a; color: white;">Contenedor</th>
               <th style="background-color: #1e3b8a; color: white;">Estado</th>
@@ -246,24 +266,30 @@ export const RechazosView: React.FC = () => {
             </tr>
           </thead>
           <tbody>
-            ${filteredRechazos.map((item: any) => `
-              <tr>
-                <td class="center bold">${item.numero || ''}</td>
-                <td class="center">${item.fecha || ''}</td>
-                <td class="center">${item.lote || ''}</td>
-                <td class="text bold">${item.productor || ''}</td>
-                <td class="center" style="background-color: #ffedd5; color: #9a3412; font-weight: bold;">${item.tipoRechazo || ''}</td>
-                <td class="center">${item.folio || ''}</td>
-                <td class="center">${item.opInicial || ''}</td>
-                <td class="center">${item.embalaje || ''}</td>
-                <td class="center">${item.fechaEmbalaje || ''}</td>
-                <td class="center" style="background-color: #eff6ff;">${item.procesoFho || ''}</td>
-                <td class="center" style="background-color: #eff6ff;">${item.opFinal || ''}</td>
-                <td class="center" style="background-color: #eff6ff; font-family: monospace;">${item.nContenedor || ''}</td>
-                <td class="center" style="background-color: #eff6ff; color: #166534; font-weight: bold;">${item.estado || ''}</td>
-                <td class="text" style="background-color: #eff6ff;">${item.observaciones || ''}</td>
-              </tr>
-            `).join('')}
+            ${filteredRechazos.map((item: any) => {
+              const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
+              return `
+                <tr>
+                  <td class="center bold">${item.numero || ''}</td>
+                  <td class="center">${item.fecha || ''}</td>
+                  <td class="center">${item.lote || ''}</td>
+                  <td class="text bold">${item.productor || ''}</td>
+                  <td class="center" style="background-color: #ffedd5; color: #9a3412; font-weight: bold;">${item.tipoRechazo || ''}</td>
+                  <td class="center">${item.folio || ''}</td>
+                  <td class="center">${item.opInicial || ''}</td>
+                  <td class="center">${item.embalaje || ''}</td>
+                  <td class="center">${item.fechaEmbalaje || ''}</td>
+                  <td class="center" style="background-color: #eff6ff;">${item.procesoFho || ''}</td>
+                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasFho || 0}</td>
+                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasAcopio || 0}</td>
+                  <td class="num" style="background-color: #dbeafe; font-weight: bold;">${totalRec > 0 ? totalRec : ''}</td>
+                  <td class="center" style="background-color: #eff6ff;">${item.opFinal || ''}</td>
+                  <td class="center" style="background-color: #eff6ff; font-family: monospace;">${item.nContenedor || ''}</td>
+                  <td class="center" style="background-color: #eff6ff; color: #166534; font-weight: bold;">${item.estado || ''}</td>
+                  <td class="text" style="background-color: #eff6ff;">${item.observaciones || ''}</td>
+                </tr>
+              `;
+            }).join('')}
           </tbody>
         </table>
       </body>
@@ -314,7 +340,7 @@ export const RechazosView: React.FC = () => {
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
             type="text"
-            placeholder="Buscar por productor, lote, folio, tipo rechazo, observaciones..."
+            placeholder="Buscar por productor, lote, folio, proceso, observaciones..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
             className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
@@ -343,15 +369,50 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Barra de Indicadores */}
-      <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-none">
-        <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-2.5 shadow-sm whitespace-nowrap">
-          <span className="text-xs font-medium text-slate-500">Total Registros:</span>
-          <span className="text-sm font-bold text-slate-900">{filteredRechazos.length} Reg.</span>
+      {/* Tarjetas de Indicadores y Consolidado de Reembalajes */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Total Registros</p>
+            <p className="text-lg font-bold text-slate-900 mt-0.5">{filteredRechazos.length} Reg.</p>
+          </div>
+          <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+            <Package className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Total Reembalajes</p>
+            <p className="text-lg font-bold text-orange-600 mt-0.5">{totalReembalajesCount} Oper.</p>
+          </div>
+          <div className="rounded-xl bg-orange-50 p-3 text-orange-600">
+            <Layers className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Total Rejillas FHO</p>
+            <p className="text-lg font-bold text-blue-700 mt-0.5">{totalRecillasFhoSum.toLocaleString('es-CL')} cjs</p>
+          </div>
+          <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
+            <Package className="h-5 w-5" />
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
+          <div>
+            <p className="text-xs font-medium text-slate-500">Total Rejillas Acopio</p>
+            <p className="text-lg font-bold text-emerald-700 mt-0.5">{totalRecillasAcopioSum.toLocaleString('es-CL')} cjs</p>
+          </div>
+          <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
+            <Package className="h-5 w-5" />
+          </div>
         </div>
       </div>
 
-      {/* Tabla con el bloque FHO resaltado y color naranja suave en T. Rechazo */}
+      {/* Tabla detallada con columnas de reembalaje integradas */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
@@ -360,14 +421,18 @@ export const RechazosView: React.FC = () => {
                 <th className="py-3.5 px-2 text-center whitespace-nowrap w-12">N°</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Fecha</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Lote</th>
-                <th className="py-3.5 px-4 text-left min-w-[220px]">Productor</th>
+                <th className="py-3.5 px-4 text-left min-w-[200px]">Productor</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">T. Rechazo</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Folio</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
-                {/* Bloque FHO con color más notorio */}
+                
+                {/* Bloque FHO / Reembalaje con color azul distintivo */}
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas FHO</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas Acopio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-200 text-blue-950 border-r border-blue-300 font-black">Total</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Estado</th>
@@ -377,62 +442,71 @@ export const RechazosView: React.FC = () => {
             </thead>
             <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredRechazos.length > 0 ? (
-                filteredRechazos.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/80 transition">
-                    <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.fecha}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.lote}</td>
-                    <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">
-                      {item.tipoRechazo ? (
-                        <span className="inline-block px-2.5 py-1 bg-orange-100 text-orange-800 rounded font-medium">
-                          {item.tipoRechazo}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.folio}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
-                    {/* Celdas del bloque FHO */}
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100">{item.procesoFho}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
-                    <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
-                      {item.estado ? (
-                        <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
-                          {item.estado}
-                        </span>
-                      ) : (
-                        <span className="text-slate-400">-</span>
-                      )}
-                    </td>
-                    <td className="py-3 px-4 text-slate-700 bg-blue-50">{item.observaciones}</td>
-                    <td className="py-3 px-3 text-center whitespace-nowrap">
-                      <div className="flex items-center justify-center gap-1.5">
-                        <button
-                          onClick={() => handleOpenEdit(item)}
-                          className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
-                          title="Editar registro"
-                        >
-                          <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(item.id)}
-                          className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
-                          title="Eliminar registro"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                filteredRechazos.map((item: any) => {
+                  const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                      <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.fecha}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.lote}</td>
+                      <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {item.tipoRechazo ? (
+                          <span className="inline-block px-2.5 py-1 bg-orange-100 text-orange-800 rounded font-medium">
+                            {item.tipoRechazo}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.folio}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
+                      
+                      {/* Celdas del bloque FHO y Reembalaje */}
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho || ''}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio || ''}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-100/70 border-r border-blue-200 font-bold text-blue-900">
+                        {totalRec > 0 ? totalRec : ''}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
+                      <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
+                        {item.estado ? (
+                          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
+                            {item.estado}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 bg-blue-50">{item.observaciones}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        <div className="flex items-center justify-center gap-1.5">
+                          <button
+                            onClick={() => handleOpenEdit(item)}
+                            className="p-1.5 bg-blue-50 text-blue-600 hover:bg-blue-100 rounded-lg transition"
+                            title="Editar registro"
+                          >
+                            <Pencil className="h-3.5 w-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(item.id)}
+                            className="p-1.5 bg-red-50 text-red-600 hover:bg-red-100 rounded-lg transition"
+                            title="Eliminar registro"
+                          >
+                            <Trash2 className="h-3.5 w-3.5" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               ) : (
                 <tr>
-                  <td colSpan={15} className="text-center py-12 text-slate-400">
+                  <td colSpan={18} className="text-center py-12 text-slate-400">
                     No hay registros disponibles en el consolidado.
                   </td>
                 </tr>
@@ -488,7 +562,15 @@ export const RechazosView: React.FC = () => {
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Proceso</label>
-                <input type="text" name="procesoFho" placeholder="Ej: FUMIGACION" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <input type="text" name="procesoFho" placeholder="Ej: REEMBALAJE" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+              </div>
+              <div>
+                <label className="block text-slate-600 font-medium mb-1">N° Recillas FHO</label>
+                <input type="number" name="nRecillasFho" value={formData.nRecillasFho} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
+              </div>
+              <div>
+                <label className="block text-slate-600 font-medium mb-1">N° Recillas Acopio</label>
+                <input type="number" name="nRecillasAcopio" value={formData.nRecillasAcopio} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Final</label>
