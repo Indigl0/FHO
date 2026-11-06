@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4 } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
-import GranelFHO from './components/GranelFHO';
-import Consolidado from './components/ConsolidadoView';
+import { GranelFhoView } from './components/GranelFhoView';
+import { ConsolidadoProcesosView } from './components/ConsolidadoProcesosView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
 import { RechazosAdminView } from './components/RechazosAdminView';
 import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
@@ -226,7 +226,7 @@ function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación Limpio y Ordenado */}
+          {/* Menú de Navegación Uniforme */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
               {userRole === 'admin' && !isOperator && (
@@ -274,11 +274,11 @@ function App() {
         </header>
 
         <main className="w-full px-6 py-6">
-          {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
+          {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
           {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
           {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
-          {view === 'consolidado' && <Consolidado records={records} />}
+          {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
         </main>
       </div>
 

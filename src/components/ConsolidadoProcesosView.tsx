@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { Download, Search, BarChart2, MessageSquare, Package } from 'lucide-react';
 import type { ProcessRecord } from '../types';
 import { computeRecord, num, getBoxCountByWeight } from '../utils/calculations';
@@ -30,7 +30,7 @@ const thCompactLeft = 'px-2.5 py-2.5 font-bold text-gray-900 whitespace-nowrap t
 const tdCls = 'px-2 py-2 text-gray-700 whitespace-nowrap text-[11px] border-r border-slate-100';
 const tdNum = 'px-2 py-2 text-right text-gray-700 whitespace-nowrap tabular-nums text-[11px] border-r border-slate-100';
 
-export default function ConsolidadoView({ records }: Props) {
+export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
   const [search, setSearch] = useState('');
 
   const filtered = records.filter((r) => {
@@ -407,4 +407,4 @@ export default function ConsolidadoView({ records }: Props) {
       </div>
     </div>
   );
-}
+};

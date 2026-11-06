@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Plus, Pencil, Trash2, Download, FileJson, Search, ArrowUpDown, Lock } from 'lucide-react';
 import type { ProcessRecord } from '../types';
 import { INITIAL_VARIEDADES } from '../constants';
@@ -27,7 +27,7 @@ const tdCls = 'px-2.5 py-2.5 text-gray-700 whitespace-nowrap text-xs';
 const tdNum = 'px-2.5 py-2.5 text-right text-gray-700 whitespace-nowrap tabular-nums text-xs';
 const tdCalc = 'px-2.5 py-2.5 text-right font-semibold whitespace-nowrap tabular-nums text-xs';
 
-export default function GranelFHO({ records, userRole, onRefresh }: Props) {
+export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh }) => {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ProcessRecord | null>(null);
   const [search, setSearch] = useState('');
@@ -298,4 +298,4 @@ export default function GranelFHO({ records, userRole, onRefresh }: Props) {
       )}
     </div>
   );
-}
+};
