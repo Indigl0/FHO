@@ -245,13 +245,6 @@ function App() {
                 label="Consolidado Procesos GRANEL"
               />
 
-              <TabButton
-                active={view === 'consolidado-rechazos'}
-                onClick={() => setView('consolidado-rechazos')}
-                icon={<BarChart4 className="h-4 w-4" />}
-                label="Consolidado Rechazos ASQUE"
-              />
-
               {userRole === 'admin' && (
                 <TabButton
                   active={view === 'rechazos'}
@@ -260,6 +253,13 @@ function App() {
                   label="Gestión Rechazos ASQUE"
                 />
               )}
+
+              <TabButton
+                active={view === 'consolidado-rechazos'}
+                onClick={() => setView('consolidado-rechazos')}
+                icon={<BarChart4 className="h-4 w-4" />}
+                label="Consolidado Rechazos ASQUE"
+              />
 
               {userRole === 'admin' && (
                 <TabButton
@@ -361,6 +361,8 @@ interface TabButtonProps {
   icon: React.ReactNode;
   label: string;
 }
+
+TabButton.displayName = 'TabButton';
 
 function TabButton({ active, onClick, icon, label }: TabButtonProps) {
   return (
