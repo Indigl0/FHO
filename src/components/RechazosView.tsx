@@ -10,6 +10,14 @@ export const RechazosView: React.FC = () => {
   const [showModal, setShowModal] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
 
+  const getTodayFormatted = () => {
+    const d = new Date();
+    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const year = String(d.getFullYear()).slice(-2);
+    return `${day}-${month}-${year}`;
+  };
+
   const [formData, setFormData] = useState({
     fecha: '',
     numero: 1,
@@ -21,11 +29,11 @@ export const RechazosView: React.FC = () => {
     embalaje: '',
     fechaEmbalaje: '',
     procesoFho: '',
-    nRecillasFho: 0,
-    nRecillasAcopio: 0,
+    nRecillasFho: '' as number | '',
+    nRecillasAcopio: '' as number | '',
     opFinal: '',
     nContenedor: '',
-    estado: '',
+    estado: 'EXPORTADO',
     observaciones: '',
   });
 
@@ -69,11 +77,11 @@ export const RechazosView: React.FC = () => {
         embalaje: r.embalaje || '',
         fechaEmbalaje: r.fecha_embalaje || '',
         procesoFho: r.proceso_fho || '',
-        nRecillasFho: Number(r.n_recillas_fho) || 0,
-        nRecillasAcopio: Number(r.n_recillas_acopio) || 0,
+        nRecillasFho: r.n_recillas_fho !== null && r.n_recillas_fho !== undefined && r.n_recillas_fho !== 0 ? Number(r.n_recillas_fho) : '',
+        nRecillasAcopio: r.n_recillas_acopio !== null && r.n_recillas_acopio !== undefined && r.n_recillas_acopio !== 0 ? Number(r.n_recillas_acopio) : '',
         opFinal: r.op_final || '',
         nContenedor: r.n_contenedor || '',
-        estado: r.estado || '',
+        estado: r.estado || 'EXPORTADO',
         observaciones: r.observaciones || '',
       }));
 
@@ -85,11 +93,11 @@ export const RechazosView: React.FC = () => {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
     setFormData((prev) => ({
       ...prev,
-      [name]: type === 'number' ? (value === '' ? 0 : Number(value)) : value,
+      [name]: type === 'number' ? (value === '' ? '' : Number(value)) : value,
     }));
   };
 
@@ -99,8 +107,10 @@ export const RechazosView: React.FC = () => {
       ? Math.max(...rechazos.map(r => Number(r.numero) || 0)) + 1 
       : 1;
 
+    const today = getTodayFormatted();
+
     setFormData({
-      fecha: '',
+      fecha: today,
       numero: nextNumero,
       lote: '',
       productor: '',
@@ -108,13 +118,13 @@ export const RechazosView: React.FC = () => {
       folio: '',
       opInicial: '',
       embalaje: '',
-      fechaEmbalaje: '',
+      fechaEmbalaje: today,
       procesoFho: '',
-      nRecillasFho: 0,
-      nRecillasAcopio: 0,
+      nRecillasFho: '',
+      nRecillasAcopio: '',
       opFinal: '',
       nContenedor: '',
-      estado: '',
+      estado: 'EXPORTADO',
       observaciones: '',
     });
     setShowModal(true);
@@ -133,11 +143,11 @@ export const RechazosView: React.FC = () => {
       embalaje: item.embalaje ?? '',
       fechaEmbalaje: item.fechaEmbalaje ?? '',
       procesoFho: item.procesoFho ?? '',
-      nRecillasFho: Number(item.nRecillasFho) || 0,
-      nRecillasAcopio: Number(item.nRecillasAcopio) || 0,
+      nRecillasFho: item.nRecillasFho !== '' && !isNaN(Number(item.nRecillasFho)) ? Number(item.nRecillasFho) : '',
+      nRecillasAcopio: item.nRecillasAcopio !== '' && !isNaN(Number(item.nRecillasAcopio)) ? Number(item.nRecillasAcopio) : '',
       opFinal: item.opFinal ?? '',
       nContenedor: item.nContenedor ?? '',
-      estado: item.estado ?? '',
+      estado: item.estado ?? 'EXPORTADO',
       observaciones: item.observaciones ?? '',
     });
     setShowModal(true);
@@ -170,8 +180,8 @@ export const RechazosView: React.FC = () => {
         embalaje: formData.embalaje,
         fecha_embalaje: formData.fechaEmbalaje,
         proceso_fho: formData.procesoFho,
-        n_recillas_fho: Number(formData.nRecillasFho) || 0,
-        n_recillas_acopio: Number(formData.nRecillasAcopio) || 0,
+        n_recillas_fho: formData.nRecillasFho === '' ? 0 : Number(formData.nRecillasFho),
+        n_recillas_acopio: formData.nRecillasAcopio === '' ? 0 : Number(formData.nRecillasAcopio),
         op_final: formData.opFinal,
         n_contenedor: formData.nContenedor,
         estado: formData.estado,
@@ -207,11 +217,9 @@ export const RechazosView: React.FC = () => {
     )
   );
 
-  // Totales generales para el Consolidado de Reembalajes
   const totalReembalajesCount = rechazos.filter(r => String(r.procesoFho).toUpperCase().includes('REEMBALAJE') || (Number(r.nRecillasFho) > 0 || Number(r.nRecillasAcopio) > 0)).length;
   const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
   const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
-  const totalGeneralRecillas = totalRecillasFhoSum + totalRecillasAcopioSum;
 
   const exportExcelPro = () => {
     const htmlTable = `
@@ -280,12 +288,12 @@ export const RechazosView: React.FC = () => {
                   <td class="center">${item.embalaje || ''}</td>
                   <td class="center">${item.fechaEmbalaje || ''}</td>
                   <td class="center" style="background-color: #eff6ff;">${item.procesoFho || ''}</td>
-                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasFho || 0}</td>
-                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasAcopio || 0}</td>
+                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasFho || ''}</td>
+                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasAcopio || ''}</td>
                   <td class="num" style="background-color: #dbeafe; font-weight: bold;">${totalRec > 0 ? totalRec : ''}</td>
                   <td class="center" style="background-color: #eff6ff;">${item.opFinal || ''}</td>
                   <td class="center" style="background-color: #eff6ff; font-family: monospace;">${item.nContenedor || ''}</td>
-                  <td class="center" style="background-color: #eff6ff; color: #166534; font-weight: bold;">${item.estado || ''}</td>
+                  <td class="center" style="background-color: #eff6ff; font-weight: bold;">${item.estado || ''}</td>
                   <td class="text" style="background-color: #eff6ff;">${item.observaciones || ''}</td>
                 </tr>
               `;
@@ -444,6 +452,9 @@ export const RechazosView: React.FC = () => {
               {filteredRechazos.length > 0 ? (
                 filteredRechazos.map((item: any) => {
                   const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
+                  const isPendiente = String(item.estado || '').toUpperCase() === 'PENDIENTE';
+                  const isExportado = String(item.estado || '').toUpperCase() === 'EXPORTADO';
+
                   return (
                     <tr key={item.id} className="hover:bg-slate-50/80 transition">
                       <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
@@ -466,16 +477,22 @@ export const RechazosView: React.FC = () => {
                       
                       {/* Celdas del bloque FHO y Reembalaje */}
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho || ''}</td>
-                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio || ''}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-100/70 border-r border-blue-200 font-bold text-blue-900">
-                        {totalRec > 0 ? totalRec : ''}
+                        {totalRec > 0 ? totalRec : '-'}
                       </td>
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
                       <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
                         {item.estado ? (
-                          <span className="inline-block px-2 py-1 bg-green-100 text-green-800 rounded font-medium">
+                          <span className={`inline-block px-2 py-1 rounded font-medium ${
+                            isPendiente 
+                              ? 'bg-rose-100 text-rose-800' 
+                              : isExportado 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-slate-100 text-slate-800'
+                          }`}>
                             {item.estado}
                           </span>
                         ) : (
@@ -566,11 +583,25 @@ export const RechazosView: React.FC = () => {
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Recillas FHO</label>
-                <input type="number" name="nRecillasFho" value={formData.nRecillasFho} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
+                <input 
+                  type="number" 
+                  name="nRecillasFho" 
+                  placeholder="Ej: 150"
+                  value={formData.nRecillasFho} 
+                  onChange={handleInputChange} 
+                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" 
+                />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Recillas Acopio</label>
-                <input type="number" name="nRecillasAcopio" value={formData.nRecillasAcopio} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
+                <input 
+                  type="number" 
+                  name="nRecillasAcopio" 
+                  placeholder="Ej: 122"
+                  value={formData.nRecillasAcopio} 
+                  onChange={handleInputChange} 
+                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" 
+                />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Final</label>
@@ -582,7 +613,15 @@ export const RechazosView: React.FC = () => {
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Estado</label>
-                <input type="text" name="estado" placeholder="Ej: EXPORTADO" value={formData.estado ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
+                <select 
+                  name="estado" 
+                  value={formData.estado} 
+                  onChange={handleInputChange} 
+                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
+                >
+                  <option value="EXPORTADO">EXPORTADO</option>
+                  <option value="PENDIENTE">PENDIENTE</option>
+                </select>
               </div>
               <div className="md:col-span-2">
                 <label className="block text-slate-600 font-medium mb-1">Observaciones</label>
