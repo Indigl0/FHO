@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4 } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import GranelFHO from './components/GranelFHO';
 import Consolidado from './components/ConsolidadoView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
 import { RechazosView } from './components/RechazosView';
+import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
 
 // ==========================================
 // CONFIGURACIÓN DE ACCESO DE OPERADOR
@@ -225,9 +226,9 @@ function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación Reordenado */}
+          {/* Menú de Navegación con la nueva vista pública */}
           <div className="px-6">
-            <nav className="flex gap-1">
+            <nav className="flex gap-1 overflow-x-auto scrollbar-none">
               {userRole === 'admin' && !isOperator && (
                 <TabButton
                   active={view === 'granel'}
@@ -244,12 +245,19 @@ function App() {
                 label="Consolidado Procesos"
               />
 
+              <TabButton
+                active={view === 'consolidado-rechazos'}
+                onClick={() => setView('consolidado-rechazos')}
+                icon={<BarChart4 className="h-4 w-4" />}
+                label="Consolidado Rechazos"
+              />
+
               {userRole === 'admin' && (
                 <TabButton
                   active={view === 'rechazos'}
                   onClick={() => setView('rechazos')}
                   icon={<ClipboardList className="h-4 w-4" />}
-                  label="Rechazos ASQUE"
+                  label="Gestión Rechazos ASQUE"
                 />
               )}
 
@@ -268,6 +276,7 @@ function App() {
         <main className="w-full px-6 py-6">
           {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFHO records={records} userRole={userRole} onRefresh={fetchRecords} />}
           {userRole === 'admin' && view === 'rechazos' && <RechazosView />}
+          {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <Consolidado records={records} />}
         </main>

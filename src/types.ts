@@ -38,7 +38,7 @@ export interface ComputedRecord {
   pctMerma: number;
 }
 
-// NUEVO: Interfaz para el módulo de Rechazos ASQUE
+// Interfaz para el módulo de Rechazos ASQUE
 export interface RechazoRecord {
   id: string;
   fecha: string;
@@ -59,5 +59,5 @@ export interface RechazoRecord {
   observaciones: string;
 }
 
-// ACTUALIZADO: Se añade 'rechazos' a las vistas permitidas
-export type ViewKey = 'granel' | 'consolidado' | 'planos' | 'rechazos';
+// Vistas permitidas en la aplicación
+export type ViewKey = 'granel' | 'consolidado' | 'planos' | 'rechazos' | 'consolidado-rechazos';

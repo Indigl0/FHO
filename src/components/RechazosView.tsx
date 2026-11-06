@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { RechazoRecord } from '../types';
-import { Pencil, Trash2, Plus, Download, Search, FileCode, Layers, Package } from 'lucide-react';
+import { Pencil, Trash2, Plus, Search, FileCode, Layers, Package } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 
 export const RechazosView: React.FC = () => {
@@ -221,120 +221,12 @@ export const RechazosView: React.FC = () => {
   const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
   const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
 
-  const exportExcelPro = () => {
-    const htmlTable = `
-      <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
-      <head>
-        <meta charset="UTF-8">
-        <!--[if gte mso 9]>
-        <xml>
-         <x:ExcelWorkbook>
-          <x:ExcelWorksheets>
-           <x:ExcelWorksheet>
-            <x:Name>Consolidado Rechazos ASQUE</x:Name>
-            <x:WorksheetOptions>
-             <x:DisplayGridlines/>
-            </x:WorksheetOptions>
-           </x:ExcelWorksheet>
-          </x:ExcelWorksheets>
-         </x:ExcelWorkbook>
-        </xml>
-        <![endif]-->
-        <style>
-          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; width: 100%; }
-          th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 8px 10px; text-align: center; vertical-align: middle; }
-          td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: middle; color: #334155; }
-          .text { text-align: left; }
-          .center { text-align: center; }
-          .bold { font-weight: bold; }
-          .num { text-align: right; mso-number-format:"#,##0"; }
-        </style>
-      </head>
-      <body>
-        <table>
-          <thead>
-            <tr>
-              <th>N°</th>
-              <th>Fecha</th>
-              <th>Lote</th>
-              <th>Productor</th>
-              <th>T. Rechazo</th>
-              <th>Folio</th>
-              <th>OP Inc</th>
-              <th>Embalaje</th>
-              <th>F. Embalaje</th>
-              <th style="background-color: #1e3b8a; color: white;">Proceso</th>
-              <th style="background-color: #1e3b8a; color: white;">N° Recillas FHO</th>
-              <th style="background-color: #1e3b8a; color: white;">N° Recillas Acopio</th>
-              <th style="background-color: #1e3b8a; color: white;">Total Recillas</th>
-              <th style="background-color: #1e3b8a; color: white;">OP Final</th>
-              <th style="background-color: #1e3b8a; color: white;">Contenedor</th>
-              <th style="background-color: #1e3b8a; color: white;">Estado</th>
-              <th style="background-color: #1e3b8a; color: white;">Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${filteredRechazos.map((item: any) => {
-              const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
-              return `
-                <tr>
-                  <td class="center bold">${item.numero || ''}</td>
-                  <td class="center">${item.fecha || ''}</td>
-                  <td class="center">${item.lote || ''}</td>
-                  <td class="text bold">${item.productor || ''}</td>
-                  <td class="center" style="background-color: #ffedd5; color: #9a3412; font-weight: bold;">${item.tipoRechazo || ''}</td>
-                  <td class="center">${item.folio || ''}</td>
-                  <td class="center">${item.opInicial || ''}</td>
-                  <td class="center">${item.embalaje || ''}</td>
-                  <td class="center">${item.fechaEmbalaje || ''}</td>
-                  <td class="center" style="background-color: #eff6ff;">${item.procesoFho || ''}</td>
-                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasFho || ''}</td>
-                  <td class="num" style="background-color: #eff6ff; font-weight: bold;">${item.nRecillasAcopio || ''}</td>
-                  <td class="num" style="background-color: #dbeafe; font-weight: bold;">${totalRec > 0 ? totalRec : ''}</td>
-                  <td class="center" style="background-color: #eff6ff;">${item.opFinal || ''}</td>
-                  <td class="center" style="background-color: #eff6ff; font-family: monospace;">${item.nContenedor || ''}</td>
-                  <td class="center" style="background-color: #eff6ff; font-weight: bold;">${item.estado || ''}</td>
-                  <td class="text" style="background-color: #eff6ff;">${item.observaciones || ''}</td>
-                </tr>
-              `;
-            }).join('')}
-          </tbody>
-        </table>
-      </body>
-      </html>
-    `;
-
-    const blob = new Blob([htmlTable], { type: 'application/vnd.ms-excel;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `Consolidado_Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.xls`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-  };
-
-  const exportToJSON = () => {
-    if (filteredRechazos.length === 0) {
-      alert('No hay registros para exportar.');
-      return;
-    }
-    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(filteredRechazos, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute("href", dataStr);
-    downloadAnchor.setAttribute("download", `Rechazos_ASQUE_${new Date().toISOString().slice(0, 10)}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-  };
-
   if (loading) {
     return (
       <div className="flex h-96 w-full items-center justify-center">
         <div className="flex flex-col items-center gap-3">
           <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
-          <p className="text-xs font-medium text-gray-500">Cargando rechazos desde Supabase...</p>
+          <p className="text-xs font-medium text-gray-500">Cargando administración de rechazos...</p>
         </div>
       </div>
     );
@@ -342,7 +234,7 @@ export const RechazosView: React.FC = () => {
 
   return (
     <div className="space-y-6 w-full max-w-full">
-      {/* Barra de Búsqueda y Acciones */}
+      {/* Barra de Búsqueda y Creación */}
       <div className="flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm border border-slate-100 lg:flex-row lg:items-center lg:justify-between">
         <div className="relative flex-1 max-w-xl">
           <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
@@ -355,29 +247,17 @@ export const RechazosView: React.FC = () => {
           />
         </div>
 
-        <div className="flex flex-wrap items-center gap-2">
-          <button
-            onClick={exportExcelPro}
-            className="flex items-center gap-1.5 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2 text-xs font-semibold text-emerald-800 shadow-sm transition hover:bg-emerald-100"
-          >
-            <Download className="h-4 w-4" /> Exportar Excel Profesional (.xls)
-          </button>
-          <button
-            onClick={exportToJSON}
-            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-xs font-semibold text-slate-700 shadow-sm transition hover:bg-slate-50"
-          >
-            <FileCode className="h-4 w-4 text-blue-600" /> JSON
-          </button>
+        <div className="flex items-center gap-2">
           <button
             onClick={handleOpenCreate}
-            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white shadow-md transition hover:bg-blue-700"
+            className="flex items-center gap-1.5 rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-blue-700"
           >
             <Plus className="h-4 w-4" /> Nuevo Registro
           </button>
         </div>
       </div>
 
-      {/* Tarjetas de Indicadores y Consolidado de Reembalajes */}
+      {/* Tarjetas Indicadoras */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
           <div>
@@ -420,7 +300,7 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Tabla detallada con columnas de reembalaje integradas */}
+      {/* Tabla completa de Gestión */}
       <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-xs">
@@ -435,8 +315,6 @@ export const RechazosView: React.FC = () => {
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
-                
-                {/* Bloque FHO / Reembalaje con color azul distintivo */}
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas FHO</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas Acopio</th>
@@ -474,8 +352,6 @@ export const RechazosView: React.FC = () => {
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
-                      
-                      {/* Celdas del bloque FHO y Reembalaje */}
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
                       <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
@@ -524,7 +400,7 @@ export const RechazosView: React.FC = () => {
               ) : (
                 <tr>
                   <td colSpan={18} className="text-center py-12 text-slate-400">
-                    No hay registros disponibles en el consolidado.
+                    No hay registros disponibles en el administrador.
                   </td>
                 </tr>
               )}
@@ -533,7 +409,7 @@ export const RechazosView: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal para Crear / Editar Registro */}
+      {/* Modal Crear / Editar */}
       {showModal && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
           <div className="bg-white rounded-2xl max-w-3xl w-full p-6 shadow-2xl max-h-[90vh] overflow-y-auto">
@@ -583,25 +459,11 @@ export const RechazosView: React.FC = () => {
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Recillas FHO</label>
-                <input 
-                  type="number" 
-                  name="nRecillasFho" 
-                  placeholder="Ej: 150"
-                  value={formData.nRecillasFho} 
-                  onChange={handleInputChange} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" 
-                />
+                <input type="number" name="nRecillasFho" placeholder="Ej: 150" value={formData.nRecillasFho} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">N° Recillas Acopio</label>
-                <input 
-                  type="number" 
-                  name="nRecillasAcopio" 
-                  placeholder="Ej: 122"
-                  value={formData.nRecillasAcopio} 
-                  onChange={handleInputChange} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" 
-                />
+                <input type="number" name="nRecillasAcopio" placeholder="Ej: 122" value={formData.nRecillasAcopio} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">OP Final</label>
@@ -613,12 +475,7 @@ export const RechazosView: React.FC = () => {
               </div>
               <div>
                 <label className="block text-slate-600 font-medium mb-1">Estado</label>
-                <select 
-                  name="estado" 
-                  value={formData.estado} 
-                  onChange={handleInputChange} 
-                  className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium"
-                >
+                <select name="estado" value={formData.estado} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-white font-medium">
                   <option value="EXPORTADO">EXPORTADO</option>
                   <option value="PENDIENTE">PENDIENTE</option>
                 </select>
