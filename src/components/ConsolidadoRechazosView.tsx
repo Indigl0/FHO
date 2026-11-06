@@ -72,6 +72,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
   const totalReembalajesCount = rechazos.filter(r => String(r.procesoFho).toUpperCase().includes('REEMBALAJE') || (Number(r.nRecillasFho) > 0 || Number(r.nRecillasAcopio) > 0)).length;
   const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
   const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
+  const totalRecillasGeneral = totalRecillasFhoSum + totalRecillasAcopioSum;
 
   const exportExcelPro = () => {
     const htmlTable = `
@@ -193,47 +194,63 @@ export const ConsolidadoRechazosView: React.FC = () => {
         </p>
       </div>
 
-      {/* Tarjetas Indicadoras (Cuadrados de Resúmenes) */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Registros</p>
-            <p className="text-lg font-bold text-slate-900 mt-0.5">{filteredRechazos.length} Reg.</p>
+      {/* Dos Recuadros Grandes (Estilo idéntico al otro consolidado) */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+        
+        {/* Recuadro 1: Naranja (Resumen General de Rechazos) */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
+          <div className="flex items-center justify-between border-b border-white/40 pb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
+              <Layers className="h-4 w-4 text-orange-100" /> Resumen General de Rechazos
+            </span>
           </div>
-          <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-            <Package className="h-5 w-5" />
+
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
+            <div className="px-1 flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Total Registros</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {filteredRechazos.length} <span className="text-xs sm:text-sm font-bold text-orange-100">Reg.</span>
+              </p>
+            </div>
+            <div className="pl-2 flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Total Reembalajes</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {totalReembalajesCount} <span className="text-xs sm:text-sm font-bold text-orange-100">Oper.</span>
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Reembalajes</p>
-            <p className="text-lg font-bold text-orange-600 mt-0.5">{totalReembalajesCount} Oper.</p>
+        {/* Recuadro 2: Verde (Cuadratura de Recillas ASQUE) */}
+        <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
+          <div className="flex items-center justify-between border-b border-white/40 pb-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
+              <Package className="h-4 w-4 text-emerald-100" /> Cuadratura de Recillas ASQUE
+            </span>
           </div>
-          <div className="rounded-xl bg-orange-50 p-3 text-orange-600">
-            <Layers className="h-5 w-5" />
+
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
+            <div className="px-1 flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Rejillas FHO</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {totalRecillasFhoSum.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
+              </p>
+            </div>
+            <div className="px-2 flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Rejillas Acopio</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {totalRecillasAcopioSum.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
+              </p>
+            </div>
+            <div className="pl-2 flex flex-col justify-between">
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Total Recillas</p>
+              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
+                {totalRecillasGeneral.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
+              </p>
+            </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Rejillas FHO</p>
-            <p className="text-lg font-bold text-blue-700 mt-0.5">{totalRecillasFhoSum.toLocaleString('es-CL')} cjs</p>
-          </div>
-          <div className="rounded-xl bg-blue-50 p-3 text-blue-600">
-            <Package className="h-5 w-5" />
-          </div>
-        </div>
-
-        <div className="flex items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 shadow-sm">
-          <div>
-            <p className="text-xs font-medium text-slate-500">Total Rejillas Acopio</p>
-            <p className="text-lg font-bold text-emerald-700 mt-0.5">{totalRecillasAcopioSum.toLocaleString('es-CL')} cjs</p>
-          </div>
-          <div className="rounded-xl bg-emerald-50 p-3 text-emerald-600">
-            <Package className="h-5 w-5" />
-          </div>
-        </div>
       </div>
 
       {/* Barra de Búsqueda y Botón de Exportar */}
