@@ -201,7 +201,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
         <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
-              <Layers className="h-4 w-4 text-orange-100" /> Resumen General de Rechazos
+              <Layers className="h-4 w-4 text-orange-100" /> RESUMEN GENERAL DE RECHAZOS
             </span>
           </div>
 
@@ -221,11 +221,11 @@ export const ConsolidadoRechazosView: React.FC = () => {
           </div>
         </div>
 
-        {/* Recuadro 2: Verde (Cuadratura de Recillas ASQUE) */}
+        {/* Recuadro 2: Verde (Detalle de Reembalajes) */}
         <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
-              <Package className="h-4 w-4 text-emerald-100" /> Cuadratura de Recillas ASQUE
+              <Package className="h-4 w-4 text-emerald-100" /> DETALLE DE REEMBALAJES
             </span>
           </div>
 
