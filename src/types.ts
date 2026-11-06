@@ -51,6 +51,8 @@ export interface RechazoRecord {
   embalaje: string;
   fechaEmbalaje: string;
   procesoFho: string;
+  nRecillasFho?: number;
+  nRecillasAcopio?: number;
   opFinal: string | number;
   nContenedor: string;
   estado: string;
