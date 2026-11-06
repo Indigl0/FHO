@@ -226,7 +226,7 @@ function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación con el título actualizado */}
+          {/* Menú de Navegación */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
               {userRole === 'admin' && !isOperator && (
@@ -242,7 +242,7 @@ function App() {
                 active={view === 'consolidado'}
                 onClick={() => setView('consolidado')}
                 icon={<BarChart3 className="h-4 w-4" />}
-                label="Consolidado Procesos"
+                label="Consolidado Procesos GRANEL"
               />
 
               <TabButton
