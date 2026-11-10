@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4 } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import { GranelFhoView } from './components/GranelFhoView';
@@ -7,6 +7,7 @@ import { ConsolidadoProcesosView } from './components/ConsolidadoProcesosView';
 import ArchivosPlanosView from './components/ArchivosPlanosView';
 import { RechazosAdminView } from './components/RechazosAdminView';
 import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
+import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 
 // ==========================================
 // CONFIGURACIÓN DE ACCESO DE OPERADOR
@@ -14,7 +15,7 @@ import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
 const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
 
 function App() {
-  const [view, setView] = useState<ViewKey>('consolidado');
+  const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -261,6 +262,14 @@ function App() {
                 label="Consolidado Rechazos ASQUE"
               />
 
+              {/* Nueva Pestaña para la Calculadora de Procesos */}
+              <TabButton
+                active={view === 'calculadora'}
+                onClick={() => setView('calculadora')}
+                icon={<Calculator className="h-4 w-4" />}
+                label="Calculadora de Procesos"
+              />
+
               {userRole === 'admin' && (
                 <TabButton
                   active={view === 'planos'}
@@ -277,6 +286,7 @@ function App() {
           {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
           {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
           {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
+          {view === 'calculadora' && <CalculadoraProcesosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
         </main>
