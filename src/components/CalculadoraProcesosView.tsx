@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calculator, Search, RotateCcw, Package, FileSpreadsheet } from 'lucide-react';
+import { Calculator, Search, Package, Scale, Layers, FileSpreadsheet } from 'lucide-react';
 
 interface EmbalajeItem {
   id: string;
@@ -29,7 +29,12 @@ const INITIAL_DATA: Omit<EmbalajeItem, 'bandejas'>[] = [
 
 export const CalculadoraProcesosView: React.FC = () => {
   const [deshidratacion, setDeshidratacion] = useState<number>(1.057);
-  const [pesoNetoBandejas, setPesoNetoBandejas] = useState<number>(1.5); // Valor estándar ajustable
+  const [pesoNetoBandejas, setPesoNetoBandejas] = useState<number>(1.5); // Valor estándar ajustable para filas
+  
+  // Simulador por Kilos Disponibles
+  const [kilosDisponibles, setKilosDisponibles] = useState<number | ''>(500);
+  const [pesoTotem, setPesoTotem] = useState<number>(3.5);
+
   const [searchTerm, setSearchTerm] = useState<string>('');
 
   // Inicializamos el estado calculando las bandejas iniciales basadas en las cajas por defecto
@@ -92,6 +97,10 @@ export const CalculadoraProcesosView: React.FC = () => {
     );
   };
 
+  // Cálculos del Simulador por Kilos
+  const numKilos = typeof kilosDisponibles === 'number' ? kilosDisponibles : 0;
+  const bandejasTotemCalc = pesoTotem > 0 ? numKilos / pesoTotem : 0;
+
   // Filtrar elementos por búsqueda
   const filteredItems = items.filter((item) =>
     item.embalaje.toLowerCase().includes(searchTerm.toLowerCase())
@@ -108,17 +117,17 @@ export const CalculadoraProcesosView: React.FC = () => {
         <div>
           <h1 className="text-2xl font-bold text-slate-800 flex items-center gap-2">
             <Calculator className="w-7 h-7 text-emerald-600" />
-            Módulo de Cálculo de Procesos
+            Módulo de Cálculo y Simulador de Procesos
           </h1>
           <p className="text-sm text-slate-500 mt-1">
-            Cálculo bidireccional automático entre Cajas y Bandejas según pesos netos y deshidratación ({deshidratacion}).
+            Cálculo bidireccional automático y simulador por Kilos Disponibles (Deshidratación: {deshidratacion}).
           </p>
         </div>
 
         {/* Parámetros Globales */}
-        <div className="flex flex-wrap items-center gap-4 bg-slate-50 p-3 rounded-lg border border-slate-200">
+        <div className="flex flex-wrap items-center gap-3 bg-slate-50 p-3 rounded-lg border border-slate-200">
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase">
+            <label className="block text-[11px] font-semibold text-slate-600 uppercase">
               % Deshidratación
             </label>
             <input
@@ -126,22 +135,70 @@ export const CalculadoraProcesosView: React.FC = () => {
               step="0.001"
               value={deshidratacion}
               onChange={(e) => setDeshidratacion(parseFloat(e.target.value) || 1.057)}
-              className="mt-1 w-28 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-24 px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-slate-600 uppercase">
-              Peso Neto Bandejas (KG)
+            <label className="block text-[11px] font-semibold text-slate-600 uppercase">
+              Peso Bandeja (Fila)
             </label>
             <input
               type="number"
               step="0.1"
               value={pesoNetoBandejas}
               onChange={(e) => setPesoNetoBandejas(parseFloat(e.target.value) || 1.5)}
-              className="mt-1 w-28 px-3 py-1.5 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="mt-1 w-24 px-2.5 py-1 bg-white border border-slate-300 rounded-md text-sm font-medium text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
             />
           </div>
         </div>
+      </div>
+
+      {/* PANEL: Simulador por Kilos Disponibles y Tótems */}
+      <div className="bg-gradient-to-r from-emerald-900 to-slate-900 p-6 rounded-2xl text-white shadow-lg space-y-4">
+        <div className="flex items-center gap-2 text-emerald-400 font-semibold text-sm uppercase tracking-wider">
+          <Scale className="w-5 h-5" />
+          Simulador por Kilos Disponibles (Tótems / Bandejas Base)
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+          <div>
+            <label className="block text-xs text-slate-300 mb-1 font-medium">
+              Kilos Disponibles (Ej. 500 KG)
+            </label>
+            <input
+              type="number"
+              value={kilosDisponibles}
+              onChange={(e) => setKilosDisponibles(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              placeholder="Ej. 500"
+              className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-lg font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+          </div>
+          <div>
+            <label className="block text-xs text-slate-300 mb-1 font-medium">
+              Peso del Formato Tótem / Bandeja (KG)
+            </label>
+            <input
+              type="number"
+              step="0.1"
+              value={pesoTotem}
+              onChange={(e) => setPesoTotem(parseFloat(e.target.value) || 3.5)}
+              className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+            />
+          </div>
+          <div className="bg-white/10 border border-white/15 p-3.5 rounded-xl flex items-center gap-3">
+            <div className="p-2.5 bg-emerald-500/20 text-emerald-400 rounded-lg">
+              <Layers className="w-6 h-6" />
+            </div>
+            <div>
+              <p className="text-xs text-slate-300 uppercase font-medium">Bandejas / Tótems Necesarios</p>
+              <h3 className="text-2xl font-black text-emerald-300">
+                {bandejasTotemCalc.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-300">unds</span>
+              </h3>
+            </div>
+          </div>
+        </div>
+        <p className="text-xs text-slate-300 italic">
+          * Con estos {numKilos} KG, revisa en la tabla de abajo cuántas cajas te alcanzarían a armar según el formato que elijas.
+        </p>
       </div>
 
       {/* Tarjetas de Resumen */}
@@ -202,38 +259,57 @@ export const CalculadoraProcesosView: React.FC = () => {
                 <th className="py-3.5 px-6 font-semibold bg-blue-50/50 text-blue-900">
                   Nº de Bandejas <span className="text-[10px] lowercase text-blue-600 font-normal">(Editable)</span>
                 </th>
+                <th className="py-3.5 px-6 font-semibold bg-purple-50/50 text-purple-900">
+                  Cajas Estimadas (según {numKilos} KG)
+                </th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 text-sm text-slate-700">
-              {filteredItems.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
-                  <td className="py-3 px-6 font-medium text-slate-800">{item.embalaje}</td>
-                  <td className="py-3 px-6 text-slate-600">{item.pesoNetoEmbalaje} KG</td>
-                  
-                  {/* Campo Cajas */}
-                  <td className="py-3 px-6 bg-emerald-50/20">
-                    <input
-                      type="number"
-                      value={item.cajas}
-                      onChange={(e) => handleCajasChange(item.id, e.target.value)}
-                      placeholder="Ej. 204"
-                      className="w-32 px-3 py-1.5 bg-white border border-emerald-300 rounded-md shadow-sm text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
-                    />
-                  </td>
+              {filteredItems.map((item) => {
+                const divisorSim = item.pesoNetoEmbalaje * deshidratacion;
+                const cajasSimuladas = divisorSim > 0 && numKilos > 0 ? numKilos / divisorSim : 0;
 
-                  {/* Campo Bandejas */}
-                  <td className="py-3 px-6 bg-blue-50/20">
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={item.bandejas}
-                      onChange={(e) => handleBandejasChange(item.id, e.target.value)}
-                      placeholder="Ej. Auto"
-                      className="w-32 px-3 py-1.5 bg-white border border-blue-300 rounded-md shadow-sm text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                  </td>
-                </tr>
-              ))}
+                return (
+                  <tr key={item.id} className="hover:bg-slate-50/80 transition-colors">
+                    <td className="py-3 px-6 font-medium text-slate-800">{item.embalaje}</td>
+                    <td className="py-3 px-6 text-slate-600">{item.pesoNetoEmbalaje} KG</td>
+                    
+                    {/* Campo Cajas */}
+                    <td className="py-3 px-6 bg-emerald-50/20">
+                      <input
+                        type="number"
+                        value={item.cajas}
+                        onChange={(e) => handleCajasChange(item.id, e.target.value)}
+                        placeholder="Ej. 204"
+                        className="w-28 px-3 py-1.5 bg-white border border-emerald-300 rounded-md shadow-sm text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      />
+                    </td>
+
+                    {/* Campo Bandejas */}
+                    <td className="py-3 px-6 bg-blue-50/20">
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={item.bandejas}
+                        onChange={(e) => handleBandejasChange(item.id, e.target.value)}
+                        placeholder="Ej. Auto"
+                        className="w-28 px-3 py-1.5 bg-white border border-blue-300 rounded-md shadow-sm text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      />
+                    </td>
+
+                    {/* Columna Cajas Estimadas por Kilos Disponibles */}
+                    <td className="py-3 px-6 bg-purple-50/20 font-bold text-purple-900">
+                      {numKilos > 0 ? (
+                        <span>
+                          {cajasSimuladas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-xs font-normal text-purple-700">cajas</span>
+                        </span>
+                      ) : (
+                        <span className="text-slate-400 font-normal text-xs">Ingrese kilos</span>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         </div>
