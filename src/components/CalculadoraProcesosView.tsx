@@ -28,15 +28,16 @@ const INITIAL_DATA: EmbalajeItem[] = [
 export const CalculadoraProcesosView: React.FC = () => {
   const [deshidratacion, setDeshidratacion] = useState<number>(1.057);
   
-  // Simulador por Kilos Disponibles
-  const [kilosDisponibles, setKilosDisponibles] = useState<number | ''>(500);
-  const [pesoTotem, setPesoTotem] = useState<number>(3.5);
+  // Inicializamos vacíos para una escritura fluida y libre de confusiones
+  const [kilosDisponibles, setKilosDisponibles] = useState<number | ''>('');
+  const [pesoTotem, setPesoTotem] = useState<number | ''>('');
 
   const [searchTerm, setSearchTerm] = useState<string>('');
 
-  // Cálculos del Simulador por Kilos
+  // Cálculos seguros
   const numKilos = typeof kilosDisponibles === 'number' ? kilosDisponibles : 0;
-  const bandejasTotemCalc = pesoTotem > 0 ? numKilos / pesoTotem : 0;
+  const numPesoTotem = typeof pesoTotem === 'number' ? pesoTotem : 0;
+  const bandejasTotemCalc = numPesoTotem > 0 ? numKilos / numPesoTotem : 0;
 
   // Filtrar elementos por búsqueda
   const filteredItems = INITIAL_DATA.filter((item) =>
@@ -89,7 +90,7 @@ export const CalculadoraProcesosView: React.FC = () => {
               type="number"
               value={kilosDisponibles}
               onChange={(e) => setKilosDisponibles(e.target.value === '' ? '' : parseFloat(e.target.value))}
-              placeholder="Ej. 500"
+              placeholder="Ingrese kilos..."
               className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-lg font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
@@ -101,8 +102,9 @@ export const CalculadoraProcesosView: React.FC = () => {
               type="number"
               step="0.1"
               value={pesoTotem}
-              onChange={(e) => setPesoTotem(parseFloat(e.target.value) || 3.5)}
-              className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-lg font-bold text-white focus:outline-none focus:ring-2 focus:ring-emerald-400"
+              onChange={(e) => setPesoTotem(e.target.value === '' ? '' : parseFloat(e.target.value))}
+              placeholder="Ingrese peso..."
+              className="w-full px-4 py-2.5 bg-white/10 border border-white/20 rounded-xl text-lg font-bold text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-400"
             />
           </div>
           <div className="bg-white/10 border border-white/15 p-3.5 rounded-xl flex items-center gap-3">
@@ -112,13 +114,13 @@ export const CalculadoraProcesosView: React.FC = () => {
             <div>
               <p className="text-xs text-slate-300 uppercase font-medium">Bandejas / Tótems Necesarios</p>
               <h3 className="text-2xl font-black text-emerald-300">
-                {bandejasTotemCalc.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-300">unds</span>
+                {numPesoTotem > 0 ? bandejasTotemCalc.toLocaleString('es-CL', { maximumFractionDigits: 1 }) : '0'} <span className="text-sm font-normal text-slate-300">unds</span>
               </h3>
             </div>
           </div>
         </div>
         <p className="text-xs text-slate-300 italic">
-          * Con estos {numKilos} KG, revisa en la tabla de abajo cuántas cajas te alcanzarán a armar según el formato que elijas.
+          * Ingrese los kilos disponibles y el peso del tótem para calcular automáticamente las bandejas y cajas en cada formato.
         </p>
       </div>
 
@@ -166,7 +168,7 @@ export const CalculadoraProcesosView: React.FC = () => {
                 <th className="py-3.5 px-6 font-semibold">Embalaje</th>
                 <th className="py-3.5 px-6 font-semibold">Peso Neto Embalaje</th>
                 <th className="py-3.5 px-6 font-semibold bg-purple-50/50 text-purple-900">
-                  Cajas Estimadas (según {numKilos} KG)
+                  Cajas Estimadas {numKilos > 0 ? `(según ${numKilos} KG)` : ''}
                 </th>
               </tr>
             </thead>
