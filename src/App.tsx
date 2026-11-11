@@ -12,7 +12,7 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
-const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl'];
+const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl', 'jgonzalez@higueraoriente.cl'];
 const CALCULATOR_ONLY_EMAILS: string[] = ['fho@gmail.com'];
 
 export function App() {
@@ -45,15 +45,17 @@ export function App() {
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (!error && session?.user) {
         const email = session.user.email || null;
-        setUserRole('admin');
         setUserEmail(email);
         
         const emailLower = email?.toLowerCase() || '';
         if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
+          setUserRole('admin');
           setView('planos');
         } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
+          setUserRole('viewer');
           setView('calculadora');
         } else {
+          setUserRole('admin');
           setView('granel');
         }
       }
@@ -64,14 +66,17 @@ export function App() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
       if (session?.user) {
         const email = session.user.email || null;
-        setUserRole('admin');
         setUserEmail(email);
         
         const emailLower = email?.toLowerCase() || '';
         if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
+          setUserRole('admin');
           setView('planos');
         } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
+          setUserRole('viewer');
           setView('calculadora');
+        } else {
+          setUserRole('admin');
         }
       } else {
         setUserRole('viewer');
@@ -149,10 +154,13 @@ export function App() {
       const loggedEmail = (data.user?.email || emailInput).toLowerCase();
 
       if (SAG_OPERATOR_EMAILS.includes(loggedEmail)) {
+        setUserRole('admin');
         setView('planos');
       } else if (CALCULATOR_ONLY_EMAILS.includes(loggedEmail)) {
+        setUserRole('viewer');
         setView('calculadora');
       } else {
+        setUserRole('admin');
         setView('granel');
       }
     } catch (err: any) {
@@ -215,13 +223,27 @@ export function App() {
                   <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
                   <div className="text-left overflow-hidden">
                     <p className="text-[10px] text-emerald-600 font-medium">
-                      {isSagOperator ? 'Operador SAG' : isCalculatorOnly ? 'Calculadora' : 'Administrador'}
+                      {isSagOperator ? 'Operador SAG' : 'Administrador'}
                     </p>
                     <p className="text-xs font-bold text-emerald-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
                   </div>
                   <button
                     onClick={handleLogout}
                     className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700 shrink-0"
+                  >
+                    <Lock className="h-3 w-3" /> Salir
+                  </button>
+                </div>
+              ) : isCalculatorOnly ? (
+                <div className="flex items-center justify-between sm:justify-start gap-2 bg-blue-50 border border-blue-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                  <Calculator className="h-4 w-4 text-blue-600 shrink-0" />
+                  <div className="text-left overflow-hidden">
+                    <p className="text-[10px] text-blue-600 font-medium">Usuario Calculadora</p>
+                    <p className="text-xs font-bold text-blue-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
+                  </div>
+                  <button
+                    onClick={handleLogout}
+                    className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0"
                   >
                     <Lock className="h-3 w-3" /> Salir
                   </button>
@@ -241,9 +263,8 @@ export function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación: Botón Desplegable Persuasivo en Celulares / Pestañas en PC */}
+          {/* Menú de Navegación */}
           <div className="px-4 sm:px-6 pb-3 pt-2 border-t border-slate-100">
-            {/* Vista Móvil / Tablet (< 768px): Botón Menú Desplegable Muy Visible y Persuasivo */}
             <div className="block md:hidden">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
                 📍 Menú de Módulos (Seleccione para cambiar)
@@ -278,7 +299,6 @@ export function App() {
               </div>
             </div>
 
-            {/* Vista Computador (>= 768px): Pestañas horizontales elegantes */}
             <nav className="hidden md:flex gap-1 overflow-x-auto scrollbar-none">
               {isSagOperator ? (
                 <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
