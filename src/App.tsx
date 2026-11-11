@@ -12,7 +12,7 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
-const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl'];
+const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl', 'jgonzalez@higueraoriente.cl'];
 const CALCULATOR_ONLY_EMAILS: string[] = ['fho@gmail.com'];
 
 export function App() {
@@ -50,10 +50,10 @@ export function App() {
         const emailLower = email?.toLowerCase() || '';
         if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
           setUserRole('admin');
-          setView('planos');
+          setView('planos'); // Vista inicial preferida para operador SAG
         } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
           setUserRole('viewer');
-          setView('calculadora');
+          setView('calculadora'); // Vista inicial preferida para calculadora
         } else {
           setUserRole('admin');
           setView('granel');
@@ -71,10 +71,8 @@ export function App() {
         const emailLower = email?.toLowerCase() || '';
         if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
           setUserRole('admin');
-          setView('planos');
         } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
           setUserRole('viewer');
-          setView('calculadora');
         } else {
           setUserRole('admin');
         }
@@ -218,19 +216,25 @@ export function App() {
             </div>
 
             <div className="w-full sm:w-auto flex items-center justify-end">
-              {userRole === 'admin' ? (
+              {userRole === 'admin' && !isSagOperator ? (
                 <div className="flex items-center justify-between sm:justify-start gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
                   <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
                   <div className="text-left overflow-hidden">
-                    <p className="text-[10px] text-emerald-600 font-medium">
-                      {isSagOperator ? 'Operador SAG' : 'Administrador'}
-                    </p>
+                    <p className="text-[10px] text-emerald-600 font-medium">Administrador</p>
                     <p className="text-xs font-bold text-emerald-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700 shrink-0"
-                  >
+                  <button onClick={handleLogout} className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700 shrink-0">
+                    <Lock className="h-3 w-3" /> Salir
+                  </button>
+                </div>
+              ) : isSagOperator ? (
+                <div className="flex items-center justify-between sm:justify-start gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                  <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <div className="text-left overflow-hidden">
+                    <p className="text-[10px] text-emerald-600 font-medium">Operador Archivos SAG</p>
+                    <p className="text-xs font-bold text-emerald-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
+                  </div>
+                  <button onClick={handleLogout} className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700 shrink-0">
                     <Lock className="h-3 w-3" /> Salir
                   </button>
                 </div>
@@ -241,10 +245,7 @@ export function App() {
                     <p className="text-[10px] text-blue-600 font-medium">Usuario Calculadora</p>
                     <p className="text-xs font-bold text-blue-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0"
-                  >
+                  <button onClick={handleLogout} className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0">
                     <Lock className="h-3 w-3" /> Salir
                   </button>
                 </div>
@@ -252,10 +253,7 @@ export function App() {
                 <div className="flex items-center justify-between sm:justify-start gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
                   <Eye className="h-4 w-4 text-amber-600 shrink-0" />
                   <span className="text-xs font-medium text-amber-800 truncate">Modo Visualizador</span>
-                  <button
-                    onClick={() => setShowLoginModal(true)}
-                    className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0"
-                  >
+                  <button onClick={() => setShowLoginModal(true)} className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0">
                     <Unlock className="h-3 w-3" /> Iniciar Sesión
                   </button>
                 </div>
@@ -263,7 +261,7 @@ export function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación */}
+          {/* Menú de Navegación: Muestra tanto las vistas públicas como la privada correspondiente */}
           <div className="px-4 sm:px-6 pb-3 pt-2 border-t border-slate-100">
             <div className="block md:hidden">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -281,18 +279,21 @@ export function App() {
                   onChange={(e) => setView(e.target.value as any)}
                   className="w-full appearance-none bg-transparent pl-11 pr-10 py-3 text-sm font-bold text-blue-900 focus:outline-none cursor-pointer"
                 >
-                  {isSagOperator ? (
-                    <option value="planos">📄 Archivos SAG</option>
-                  ) : isCalculatorOnly ? (
-                    <option value="calculadora">🧮 Calculadora de Procesos</option>
-                  ) : (
+                  {/* Vistas públicas siempre disponibles para todos */}
+                  <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
+                  <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
+
+                  {/* Vistas específicas según el rol */}
+                  {isSagOperator && <option value="planos">📄 Archivos SAG</option>}
+                  {isCalculatorOnly && <option value="calculadora">🧮 Calculadora de Procesos</option>}
+
+                  {/* Vistas adicionales si es administrador general */}
+                  {!isSagOperator && !isCalculatorOnly && userRole === 'admin' && (
                     <>
-                      {userRole === 'admin' && <option value="granel">📊 Granel FHO</option>}
-                      <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
-                      {userRole === 'admin' && <option value="rechazos">📋 Gestión Rechazos ASQUE</option>}
-                      <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
-                      {userRole === 'admin' && <option value="calculadora">🧮 Calculadora de Procesos</option>}
-                      {userRole === 'admin' && <option value="planos">📄 Archivos SAG</option>}
+                      <option value="granel">📊 Granel FHO</option>
+                      <option value="rechazos">📋 Gestión Rechazos ASQUE</option>
+                      <option value="calculadora">🧮 Calculadora de Procesos</option>
+                      <option value="planos">📄 Archivos SAG</option>
                     </>
                   )}
                 </select>
@@ -300,26 +301,24 @@ export function App() {
             </div>
 
             <nav className="hidden md:flex gap-1 overflow-x-auto scrollbar-none">
-              {isSagOperator ? (
+              {/* Pestañas públicas comunes */}
+              <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
+              <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
+
+              {/* Pestañas específicas según el rol o permisos */}
+              {isSagOperator && (
                 <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
-              ) : isCalculatorOnly ? (
+              )}
+              {isCalculatorOnly && (
                 <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
-              ) : (
+              )}
+
+              {!isSagOperator && !isCalculatorOnly && userRole === 'admin' && (
                 <>
-                  {userRole === 'admin' && (
-                    <TabButton active={view === 'granel'} onClick={() => setView('granel')} icon={<Table2 className="h-4 w-4" />} label="Granel FHO" />
-                  )}
-                  <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
-                  {userRole === 'admin' && (
-                    <TabButton active={view === 'rechazos'} onClick={() => setView('rechazos')} icon={<ClipboardList className="h-4 w-4" />} label="Gestión Rechazos ASQUE" />
-                  )}
-                  <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
-                  {userRole === 'admin' && (
-                    <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
-                  )}
-                  {userRole === 'admin' && (
-                    <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
-                  )}
+                  <TabButton active={view === 'granel'} onClick={() => setView('granel')} icon={<Table2 className="h-4 w-4" />} label="Granel FHO" />
+                  <TabButton active={view === 'rechazos'} onClick={() => setView('rechazos')} icon={<ClipboardList className="h-4 w-4" />} label="Gestión Rechazos ASQUE" />
+                  <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
+                  <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
                 </>
               )}
             </nav>
@@ -327,18 +326,14 @@ export function App() {
         </header>
 
         <main className="w-full px-4 sm:px-6 py-4 sm:py-6">
-          {isSagOperator ? (
-            <ArchivosPlanosView />
-          ) : isCalculatorOnly ? (
-            <CalculadoraProcesosView />
-          ) : (
+          {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
+          {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
+          {view === 'planos' && <ArchivosPlanosView />}
+          {view === 'calculadora' && <CalculadoraProcesosView />}
+          {userRole === 'admin' && !isSagOperator && !isCalculatorOnly && (
             <>
-              {userRole === 'admin' && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
-              {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
-              {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
-              {userRole === 'admin' && view === 'calculadora' && <CalculadoraProcesosView />}
-              {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
-              {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
+              {view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
+              {view === 'rechazos' && <RechazosAdminView />}
             </>
           )}
         </main>
