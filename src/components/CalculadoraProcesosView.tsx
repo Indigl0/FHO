@@ -113,7 +113,7 @@ export const CalculadoraProcesosView: React.FC = () => {
               <Layers className="w-6 h-6" />
             </div>
             <div>
-              <p className="text-xs text-slate-300 uppercase font-medium">Tótems Necesarios</p>
+              <p className="text-xs text-slate-300 uppercase font-medium">Bandejas Necesarias</p>
               <h3 className="text-2xl font-black text-emerald-300">
                 {numPesoTotem > 0 ? bandejasTotemCalc.toLocaleString('es-CL', { maximumFractionDigits: 1 }) : '0'} <span className="text-sm font-normal text-slate-300">unds</span>
               </h3>
