@@ -22,7 +22,7 @@ const SAG_OPERATOR_EMAILS = [
 
 // Correos que SOLO tienen acceso exclusivo a la Calculadora de Procesos
 const CALCULATOR_ONLY_EMAILS = [
-  'usuario-calculadora@higueraoriente.cl',
+  'mpineda@higueraoriente.cl',
   // Agrega aquí los correos que solo usarán la calculadora
 ];
 
