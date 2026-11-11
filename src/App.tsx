@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator, Menu } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator, Menu, ChevronDown } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import { GranelFhoView } from './components/GranelFhoView';
@@ -241,18 +241,24 @@ export function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación Responsivo: Selector en Celulares / Pestañas en Computador */}
-          <div className="px-4 sm:px-6 pb-2 sm:pb-0 border-t border-slate-100 sm:border-t-0 pt-2 sm:pt-0">
-            {/* Vista Móvil / Tablet (< 768px): Selector desplegable moderno */}
+          {/* Menú de Navegación: Botón Desplegable Persuasivo en Celulares / Pestañas en PC */}
+          <div className="px-4 sm:px-6 pb-3 pt-2 border-t border-slate-100">
+            {/* Vista Móvil / Tablet (< 768px): Botón Menú Desplegable Muy Visible y Persuasivo */}
             <div className="block md:hidden">
-              <div className="relative">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600">
-                  <Menu className="w-4 h-4" />
+              <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                📍 Menú de Módulos (Seleccione para cambiar)
+              </label>
+              <div className="relative shadow-md rounded-xl overflow-hidden border-2 border-blue-600 bg-blue-50">
+                <div className="absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-700">
+                  <Menu className="w-5 h-5" />
+                </div>
+                <div className="absolute right-3.5 top-1/2 -translate-y-1/2 pointer-events-none text-blue-700">
+                  <ChevronDown className="w-5 h-5" />
                 </div>
                 <select
                   value={view}
                   onChange={(e) => setView(e.target.value as any)}
-                  className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-8 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full appearance-none bg-transparent pl-11 pr-10 py-3 text-sm font-bold text-blue-900 focus:outline-none cursor-pointer"
                 >
                   {isSagOperator ? (
                     <option value="planos">📄 Archivos SAG</option>
