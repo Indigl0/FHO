@@ -14,12 +14,9 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
 
-// Agrega aquí los correos autorizados para usar la Calculadora de Procesos
-const CALCULADORA_AUTHORIZED_EMAILS = [
-  'mpineda@higueraoriente.cl',
-  // Puedes agregar más correos aquí entre comillas separados por coma, ejemplo:
-  // 'usuario1@higueraoriente.cl',
-  // 'usuario2@higueraoriente.cl',
+// Correos que SOLO tienen acceso exclusivo a la Calculadora de Procesos
+const CALCULATOR_ONLY_EMAILS = [
+  'usuario-calculadora@higueraoriente.cl', // Reemplaza o agrega aquí los correos que solo usarán la calculadora
 ];
 
 function App() {
@@ -37,8 +34,8 @@ function App() {
 
   const isOperator = userEmail?.toLowerCase() === OPERATOR_EMAIL.toLowerCase();
   
-  // Validación de acceso a la Calculadora de Procesos
-  const canAccessCalculadora = userEmail && CALCULADORA_AUTHORIZED_EMAILS.includes(userEmail.toLowerCase());
+  // Validar si el usuario actual es exclusivo de la calculadora
+  const isCalculatorOnly = userEmail && CALCULATOR_ONLY_EMAILS.includes(userEmail.toLowerCase());
 
   useEffect(() => {
     fetchRecords();
@@ -55,8 +52,12 @@ function App() {
         const email = session.user.email || null;
         setUserRole('admin');
         setUserEmail(email);
-        if (email?.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+        
+        const lowerEmail = email?.toLowerCase() || '';
+        if (lowerEmail === OPERATOR_EMAIL.toLowerCase()) {
           setView('planos');
+        } else if (CALCULATOR_ONLY_EMAILS.includes(lowerEmail)) {
+          setView('calculadora');
         } else {
           setView('granel');
         }
@@ -70,8 +71,12 @@ function App() {
         const email = session.user.email || null;
         setUserRole('admin');
         setUserEmail(email);
-        if (email?.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+        
+        const lowerEmail = email?.toLowerCase() || '';
+        if (lowerEmail === OPERATOR_EMAIL.toLowerCase()) {
           setView('planos');
+        } else if (CALCULATOR_ONLY_EMAILS.includes(lowerEmail)) {
+          setView('calculadora');
         }
       } else {
         setUserRole('viewer');
@@ -147,8 +152,12 @@ function App() {
       setPasswordInput('');
 
       const loggedEmail = data.user?.email || emailInput;
-      if (loggedEmail.toLowerCase() === OPERATOR_EMAIL.toLowerCase()) {
+      const lowerLogged = loggedEmail.toLowerCase();
+
+      if (lowerLogged === OPERATOR_EMAIL.toLowerCase()) {
         setView('planos');
+      } else if (CALCULATOR_ONLY_EMAILS.includes(lowerLogged)) {
+        setView('calculadora');
       } else {
         setView('granel');
       }
@@ -212,7 +221,7 @@ function App() {
                   <Shield className="h-4 w-4 text-emerald-600" />
                   <div className="text-left">
                     <p className="text-[10px] text-emerald-600 font-medium">
-                      {isOperator ? 'Operador Archivos SAG' : 'Administrador'}
+                      {isOperator ? 'Operador Archivos SAG' : isCalculatorOnly ? 'Usuario Calculadora' : 'Administrador'}
                     </p>
                     <p className="text-xs font-bold text-emerald-900">{userEmail}</p>
                   </div>
@@ -241,67 +250,84 @@ function App() {
           {/* Menú de Navegación Uniforme */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
-              {userRole === 'admin' && !isOperator && (
-                <TabButton
-                  active={view === 'granel'}
-                  onClick={() => setView('granel')}
-                  icon={<Table2 className="h-4 w-4" />}
-                  label="Granel FHO"
-                />
-              )}
-              
-              <TabButton
-                active={view === 'consolidado'}
-                onClick={() => setView('consolidado')}
-                icon={<BarChart3 className="h-4 w-4" />}
-                label="Consolidado Procesos GRANEL"
-              />
-
-              {userRole === 'admin' && (
-                <TabButton
-                  active={view === 'rechazos'}
-                  onClick={() => setView('rechazos')}
-                  icon={<ClipboardList className="h-4 w-4" />}
-                  label="Gestión Rechazos ASQUE"
-                />
-              )}
-
-              <TabButton
-                active={view === 'consolidado-rechazos'}
-                onClick={() => setView('consolidado-rechazos')}
-                icon={<BarChart4 className="h-4 w-4" />}
-                label="Consolidado Rechazos ASQUE"
-              />
-
-              {/* Pestaña Calculadora de Procesos (Protegida por lista de correos o admin) */}
-              {(userRole === 'admin' || canAccessCalculadora) && (
+              {/* Si es usuario exclusivo de calculadora, solo ve la calculadora */}
+              {isCalculatorOnly ? (
                 <TabButton
                   active={view === 'calculadora'}
                   onClick={() => setView('calculadora')}
                   icon={<Calculator className="h-4 w-4" />}
                   label="Calculadora de Procesos"
                 />
-              )}
+              ) : (
+                <>
+                  {userRole === 'admin' && !isOperator && (
+                    <TabButton
+                      active={view === 'granel'}
+                      onClick={() => setView('granel')}
+                      icon={<Table2 className="h-4 w-4" />}
+                      label="Granel FHO"
+                    />
+                  )}
+                  
+                  <TabButton
+                    active={view === 'consolidado'}
+                    onClick={() => setView('consolidado')}
+                    icon={<BarChart3 className="h-4 w-4" />}
+                    label="Consolidado Procesos GRANEL"
+                  />
 
-              {userRole === 'admin' && (
-                <TabButton
-                  active={view === 'planos'}
-                  onClick={() => setView('planos')}
-                  icon={<FileText className="h-4 w-4" />}
-                  label="Archivos SAG"
-                />
+                  {userRole === 'admin' && (
+                    <TabButton
+                      active={view === 'rechazos'}
+                      onClick={() => setView('rechazos')}
+                      icon={<ClipboardList className="h-4 w-4" />}
+                      label="Gestión Rechazos ASQUE"
+                    />
+                  )}
+
+                  <TabButton
+                    active={view === 'consolidado-rechazos'}
+                    onClick={() => setView('consolidado-rechazos')}
+                    icon={<BarChart4 className="h-4 w-4" />}
+                    label="Consolidado Rechazos ASQUE"
+                  />
+
+                  {userRole === 'admin' && (
+                    <TabButton
+                      active={view === 'calculadora'}
+                      onClick={() => setView('calculadora')}
+                      icon={<Calculator className="h-4 w-4" />}
+                      label="Calculadora de Procesos"
+                    />
+                  )}
+
+                  {userRole === 'admin' && (
+                    <TabButton
+                      active={view === 'planos'}
+                      onClick={() => setView('planos')}
+                      icon={<FileText className="h-4 w-4" />}
+                      label="Archivos SAG"
+                    />
+                  )}
+                </>
               )}
             </nav>
           </div>
         </header>
 
         <main className="w-full px-6 py-6">
-          {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
-          {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
-          {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
-          {(userRole === 'admin' || canAccessCalculadora) && view === 'calculadora' && <CalculadoraProcesosView />}
-          {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
-          {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
+          {isCalculatorOnly ? (
+            <CalculadoraProcesosView />
+          ) : (
+            <>
+              {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
+              {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
+              {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
+              {userRole === 'admin' && view === 'calculadora' && <CalculadoraProcesosView />}
+              {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
+              {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
+            </>
+          )}
         </main>
       </div>
 
