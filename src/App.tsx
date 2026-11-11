@@ -12,7 +12,7 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
-const SAG_OPERATOR_EMAILS: string[] = [];
+const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl'];
 const CALCULATOR_ONLY_EMAILS: string[] = [];
 
 export function App() {
