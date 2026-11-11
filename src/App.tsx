@@ -10,9 +10,17 @@ import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
 import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 
 // ==========================================
-// CONFIGURACIÓN DE ACCESO DE OPERADOR
+// CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
 const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
+
+// Agrega aquí los correos autorizados para usar la Calculadora de Procesos
+const CALCULADORA_AUTHORIZED_EMAILS = [
+  'mpineda@higueraoriente.cl',
+  // Puedes agregar más correos aquí entre comillas separados por coma, ejemplo:
+  // 'usuario1@higueraoriente.cl',
+  // 'usuario2@higueraoriente.cl',
+];
 
 function App() {
   const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
@@ -28,6 +36,9 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
 
   const isOperator = userEmail?.toLowerCase() === OPERATOR_EMAIL.toLowerCase();
+  
+  // Validación de acceso a la Calculadora de Procesos
+  const canAccessCalculadora = userEmail && CALCULADORA_AUTHORIZED_EMAILS.includes(userEmail.toLowerCase());
 
   useEffect(() => {
     fetchRecords();
@@ -262,13 +273,15 @@ function App() {
                 label="Consolidado Rechazos ASQUE"
               />
 
-              {/* Nueva Pestaña para la Calculadora de Procesos */}
-              <TabButton
-                active={view === 'calculadora'}
-                onClick={() => setView('calculadora')}
-                icon={<Calculator className="h-4 w-4" />}
-                label="Calculadora de Procesos"
-              />
+              {/* Pestaña Calculadora de Procesos (Protegida por lista de correos o admin) */}
+              {(userRole === 'admin' || canAccessCalculadora) && (
+                <TabButton
+                  active={view === 'calculadora'}
+                  onClick={() => setView('calculadora')}
+                  icon={<Calculator className="h-4 w-4" />}
+                  label="Calculadora de Procesos"
+                />
+              )}
 
               {userRole === 'admin' && (
                 <TabButton
@@ -286,7 +299,7 @@ function App() {
           {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
           {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
           {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
-          {view === 'calculadora' && <CalculadoraProcesosView />}
+          {(userRole === 'admin' || canAccessCalculadora) && view === 'calculadora' && <CalculadoraProcesosView />}
           {userRole === 'admin' && view === 'planos' && <ArchivosPlanosView />}
           {view === 'consolidado' && <ConsolidadoProcesosView records={records} />}
         </main>
