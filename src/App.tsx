@@ -12,11 +12,18 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
-const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl'; 
+
+// Correos con acceso exclusivo al panel de ARCHIVOS SAG
+const SAG_OPERATOR_EMAILS = [
+  'mpineda@higueraoriente.cl',
+  // Agrega aquí más correos si necesitas darles acceso a Archivos SAG, ejemplo:
+  // 'otro-operador@higueraoriente.cl',
+];
 
 // Correos que SOLO tienen acceso exclusivo a la Calculadora de Procesos
 const CALCULATOR_ONLY_EMAILS = [
-  'mpineda@higueraoriente.cl', // Reemplaza o agrega aquí los correos que solo usarán la calculadora
+  'usuario-calculadora@higueraoriente.cl',
+  // Agrega aquí los correos que solo usarán la calculadora
 ];
 
 function App() {
@@ -32,10 +39,11 @@ function App() {
   const [errorMsg, setErrorMsg] = useState('');
   const [submitting, setSubmitting] = useState(false);
 
-  const isOperator = userEmail?.toLowerCase() === OPERATOR_EMAIL.toLowerCase();
-  
-  // Validar si el usuario actual es exclusivo de la calculadora
-  const isCalculatorOnly = userEmail && CALCULATOR_ONLY_EMAILS.includes(userEmail.toLowerCase());
+  const lowerEmail = userEmail?.toLowerCase() || '';
+
+  // Validaciones de roles y accesos específicos
+  const isSagOperator = lowerEmail !== '' && SAG_OPERATOR_EMAILS.includes(lowerEmail);
+  const isCalculatorOnly = lowerEmail !== '' && CALCULATOR_ONLY_EMAILS.includes(lowerEmail);
 
   useEffect(() => {
     fetchRecords();
@@ -53,10 +61,10 @@ function App() {
         setUserRole('admin');
         setUserEmail(email);
         
-        const lowerEmail = email?.toLowerCase() || '';
-        if (lowerEmail === OPERATOR_EMAIL.toLowerCase()) {
+        const emailLower = email?.toLowerCase() || '';
+        if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
           setView('planos');
-        } else if (CALCULATOR_ONLY_EMAILS.includes(lowerEmail)) {
+        } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
           setView('calculadora');
         } else {
           setView('granel');
@@ -72,10 +80,10 @@ function App() {
         setUserRole('admin');
         setUserEmail(email);
         
-        const lowerEmail = email?.toLowerCase() || '';
-        if (lowerEmail === OPERATOR_EMAIL.toLowerCase()) {
+        const emailLower = email?.toLowerCase() || '';
+        if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
           setView('planos');
-        } else if (CALCULATOR_ONLY_EMAILS.includes(lowerEmail)) {
+        } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
           setView('calculadora');
         }
       } else {
@@ -151,12 +159,11 @@ function App() {
       setEmailInput('');
       setPasswordInput('');
 
-      const loggedEmail = data.user?.email || emailInput;
-      const lowerLogged = loggedEmail.toLowerCase();
+      const loggedEmail = (data.user?.email || emailInput).toLowerCase();
 
-      if (lowerLogged === OPERATOR_EMAIL.toLowerCase()) {
+      if (SAG_OPERATOR_EMAILS.includes(loggedEmail)) {
         setView('planos');
-      } else if (CALCULATOR_ONLY_EMAILS.includes(lowerLogged)) {
+      } else if (CALCULATOR_ONLY_EMAILS.includes(loggedEmail)) {
         setView('calculadora');
       } else {
         setView('granel');
@@ -221,7 +228,7 @@ function App() {
                   <Shield className="h-4 w-4 text-emerald-600" />
                   <div className="text-left">
                     <p className="text-[10px] text-emerald-600 font-medium">
-                      {isOperator ? 'Operador Archivos SAG' : isCalculatorOnly ? 'Usuario Calculadora' : 'Administrador'}
+                      {isSagOperator ? 'Operador Archivos SAG' : isCalculatorOnly ? 'Usuario Calculadora' : 'Administrador'}
                     </p>
                     <p className="text-xs font-bold text-emerald-900">{userEmail}</p>
                   </div>
@@ -250,8 +257,14 @@ function App() {
           {/* Menú de Navegación Uniforme */}
           <div className="px-6">
             <nav className="flex gap-1 overflow-x-auto scrollbar-none">
-              {/* Si es usuario exclusivo de calculadora, solo ve la calculadora */}
-              {isCalculatorOnly ? (
+              {isSagOperator ? (
+                <TabButton
+                  active={view === 'planos'}
+                  onClick={() => setView('planos')}
+                  icon={<FileText className="h-4 w-4" />}
+                  label="Archivos SAG"
+                />
+              ) : isCalculatorOnly ? (
                 <TabButton
                   active={view === 'calculadora'}
                   onClick={() => setView('calculadora')}
@@ -260,7 +273,7 @@ function App() {
                 />
               ) : (
                 <>
-                  {userRole === 'admin' && !isOperator && (
+                  {userRole === 'admin' && (
                     <TabButton
                       active={view === 'granel'}
                       onClick={() => setView('granel')}
@@ -316,11 +329,13 @@ function App() {
         </header>
 
         <main className="w-full px-6 py-6">
-          {isCalculatorOnly ? (
+          {isSagOperator ? (
+            <ArchivosPlanosView />
+          ) : isCalculatorOnly ? (
             <CalculadoraProcesosView />
           ) : (
             <>
-              {userRole === 'admin' && !isOperator && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
+              {userRole === 'admin' && view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
               {userRole === 'admin' && view === 'rechazos' && <RechazosAdminView />}
               {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
               {userRole === 'admin' && view === 'calculadora' && <CalculadoraProcesosView />}
