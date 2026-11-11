@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator, Menu } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import { GranelFhoView } from './components/GranelFhoView';
@@ -12,21 +12,10 @@ import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
 // ==========================================
+const SAG_OPERATOR_EMAILS: string[] = [];
+const CALCULATOR_ONLY_EMAILS: string[] = [];
 
-// Correos con acceso exclusivo al panel de ARCHIVOS SAG
-const SAG_OPERATOR_EMAILS = [
-  'mpineda@higueraoriente.cl',
-  // Agrega aquí más correos si necesitas darles acceso a Archivos SAG, ejemplo:
-  // 'otro-operador@higueraoriente.cl',
-];
-
-// Correos que SOLO tienen acceso exclusivo a la Calculadora de Procesos
-const CALCULATOR_ONLY_EMAILS = [
-  '',
-  // Agrega aquí los correos que solo usarán la calculadora
-];
-
-function App() {
+export function App() {
   const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
@@ -40,8 +29,6 @@ function App() {
   const [submitting, setSubmitting] = useState(false);
 
   const lowerEmail = userEmail?.toLowerCase() || '';
-
-  // Validaciones de roles y accesos específicos
   const isSagOperator = lowerEmail !== '' && SAG_OPERATOR_EMAILS.includes(lowerEmail);
   const isCalculatorOnly = lowerEmail !== '' && CALCULATOR_ONLY_EMAILS.includes(lowerEmail);
 
@@ -195,9 +182,9 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
       <div>
         <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
-          <div className="flex w-full items-center justify-between px-6 py-3">
-            <div className="flex items-center gap-3.5">
-              <div className="flex h-12 w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-200 p-1.5">
+          <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between px-4 sm:px-6 py-3 gap-3">
+            <div className="flex items-center gap-3">
+              <div className="flex h-11 w-12 sm:h-12 sm:w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-200 p-1.5 shrink-0">
                 <svg viewBox="0 0 100 100" className="h-full w-full" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M50 15 C45 25, 20 25, 10 40 C25 45, 45 35, 50 15 Z" fill="#27ae60" />
                   <path d="M55 18 C60 28, 85 28, 95 43 C80 48, 60 38, 55 18 Z" fill="#2ecc71" />
@@ -210,117 +197,102 @@ function App() {
                 </svg>
               </div>
               <div>
-                <div className="flex items-center gap-2">
-                  <h1 className="text-base font-black tracking-tight text-slate-900 leading-tight">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-sm sm:text-base font-black tracking-tight text-slate-900 leading-tight">
                     ARÁNDANOS
                   </h1>
                   <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-200">
                     Temporada 2026-2027
                   </span>
                 </div>
-                <p className="text-xs font-medium text-slate-500">Sistema de Control y Cuadratura (Nube en Tiempo Real)</p>
+                <p className="text-[11px] sm:text-xs font-medium text-slate-500">Sistema de Control y Cuadratura</p>
               </div>
             </div>
 
-            <div className="flex items-center gap-3">
+            <div className="w-full sm:w-auto flex items-center justify-end">
               {userRole === 'admin' ? (
-                <div className="flex items-center gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
-                  <Shield className="h-4 w-4 text-emerald-600" />
-                  <div className="text-left">
+                <div className="flex items-center justify-between sm:justify-start gap-2 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                  <Shield className="h-4 w-4 text-emerald-600 shrink-0" />
+                  <div className="text-left overflow-hidden">
                     <p className="text-[10px] text-emerald-600 font-medium">
-                      {isSagOperator ? 'Operador Archivos SAG' : isCalculatorOnly ? 'Usuario Calculadora' : 'Administrador'}
+                      {isSagOperator ? 'Operador SAG' : isCalculatorOnly ? 'Calculadora' : 'Administrador'}
                     </p>
-                    <p className="text-xs font-bold text-emerald-900">{userEmail}</p>
+                    <p className="text-xs font-bold text-emerald-900 truncate max-w-[180px] sm:max-w-[220px]">{userEmail}</p>
                   </div>
                   <button
                     onClick={handleLogout}
-                    className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700"
+                    className="ml-2 flex items-center gap-1 rounded-lg bg-emerald-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-emerald-700 shrink-0"
                   >
                     <Lock className="h-3 w-3" /> Salir
                   </button>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl">
-                  <Eye className="h-4 w-4 text-amber-600" />
-                  <span className="text-xs font-medium text-amber-800">Modo Visualizador (Público)</span>
+                <div className="flex items-center justify-between sm:justify-start gap-2 bg-amber-50 border border-amber-200 px-3 py-1.5 rounded-xl w-full sm:w-auto">
+                  <Eye className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span className="text-xs font-medium text-amber-800 truncate">Modo Visualizador</span>
                   <button
                     onClick={() => setShowLoginModal(true)}
-                    className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700"
+                    className="ml-2 flex items-center gap-1 rounded-lg bg-blue-600 px-2.5 py-1 text-[11px] font-semibold text-white transition hover:bg-blue-700 shrink-0"
                   >
-                    <Unlock className="h-3 w-3" /> Iniciar Sesión Admin
+                    <Unlock className="h-3 w-3" /> Iniciar Sesión
                   </button>
                 </div>
               )}
             </div>
           </div>
 
-          {/* Menú de Navegación Uniforme */}
-          <div className="px-6">
-            <nav className="flex gap-1 overflow-x-auto scrollbar-none">
+          {/* Menú de Navegación Responsivo: Selector en Celulares / Pestañas en Computador */}
+          <div className="px-4 sm:px-6 pb-2 sm:pb-0 border-t border-slate-100 sm:border-t-0 pt-2 sm:pt-0">
+            {/* Vista Móvil / Tablet (< 768px): Selector desplegable moderno */}
+            <div className="block md:hidden">
+              <div className="relative">
+                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-blue-600">
+                  <Menu className="w-4 h-4" />
+                </div>
+                <select
+                  value={view}
+                  onChange={(e) => setView(e.target.value as any)}
+                  className="w-full appearance-none bg-slate-50 border border-slate-300 rounded-xl pl-9 pr-8 py-2.5 text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                  {isSagOperator ? (
+                    <option value="planos">📄 Archivos SAG</option>
+                  ) : isCalculatorOnly ? (
+                    <option value="calculadora">🧮 Calculadora de Procesos</option>
+                  ) : (
+                    <>
+                      {userRole === 'admin' && <option value="granel">📊 Granel FHO</option>}
+                      <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
+                      {userRole === 'admin' && <option value="rechazos">📋 Gestión Rechazos ASQUE</option>}
+                      <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
+                      {userRole === 'admin' && <option value="calculadora">🧮 Calculadora de Procesos</option>}
+                      {userRole === 'admin' && <option value="planos">📄 Archivos SAG</option>}
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+
+            {/* Vista Computador (>= 768px): Pestañas horizontales elegantes */}
+            <nav className="hidden md:flex gap-1 overflow-x-auto scrollbar-none">
               {isSagOperator ? (
-                <TabButton
-                  active={view === 'planos'}
-                  onClick={() => setView('planos')}
-                  icon={<FileText className="h-4 w-4" />}
-                  label="Archivos SAG"
-                />
+                <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
               ) : isCalculatorOnly ? (
-                <TabButton
-                  active={view === 'calculadora'}
-                  onClick={() => setView('calculadora')}
-                  icon={<Calculator className="h-4 w-4" />}
-                  label="Calculadora de Procesos"
-                />
+                <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
               ) : (
                 <>
                   {userRole === 'admin' && (
-                    <TabButton
-                      active={view === 'granel'}
-                      onClick={() => setView('granel')}
-                      icon={<Table2 className="h-4 w-4" />}
-                      label="Granel FHO"
-                    />
+                    <TabButton active={view === 'granel'} onClick={() => setView('granel')} icon={<Table2 className="h-4 w-4" />} label="Granel FHO" />
                   )}
-                  
-                  <TabButton
-                    active={view === 'consolidado'}
-                    onClick={() => setView('consolidado')}
-                    icon={<BarChart3 className="h-4 w-4" />}
-                    label="Consolidado Procesos GRANEL"
-                  />
-
+                  <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
                   {userRole === 'admin' && (
-                    <TabButton
-                      active={view === 'rechazos'}
-                      onClick={() => setView('rechazos')}
-                      icon={<ClipboardList className="h-4 w-4" />}
-                      label="Gestión Rechazos ASQUE"
-                    />
+                    <TabButton active={view === 'rechazos'} onClick={() => setView('rechazos')} icon={<ClipboardList className="h-4 w-4" />} label="Gestión Rechazos ASQUE" />
                   )}
-
-                  <TabButton
-                    active={view === 'consolidado-rechazos'}
-                    onClick={() => setView('consolidado-rechazos')}
-                    icon={<BarChart4 className="h-4 w-4" />}
-                    label="Consolidado Rechazos ASQUE"
-                  />
-
+                  <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
                   {userRole === 'admin' && (
-                    <TabButton
-                      active={view === 'calculadora'}
-                      onClick={() => setView('calculadora')}
-                      icon={<Calculator className="h-4 w-4" />}
-                      label="Calculadora de Procesos"
-                    />
+                    <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
                   )}
-
                   {userRole === 'admin' && (
-                    <TabButton
-                      active={view === 'planos'}
-                      onClick={() => setView('planos')}
-                      icon={<FileText className="h-4 w-4" />}
-                      label="Archivos SAG"
-                    />
+                    <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
                   )}
                 </>
               )}
@@ -328,7 +300,7 @@ function App() {
           </div>
         </header>
 
-        <main className="w-full px-6 py-6">
+        <main className="w-full px-4 sm:px-6 py-4 sm:py-6">
           {isSagOperator ? (
             <ArchivosPlanosView />
           ) : isCalculatorOnly ? (
@@ -432,7 +404,7 @@ function TabButton({ active, onClick, icon, label }: TabButtonProps) {
   return (
     <button
       onClick={onClick}
-      className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition ${
+      className={`flex items-center gap-2 border-b-2 px-4 py-2.5 text-sm font-medium transition whitespace-nowrap ${
         active
           ? 'border-blue-600 text-blue-600'
           : 'border-transparent text-gray-500 hover:text-gray-800'
