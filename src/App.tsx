@@ -16,7 +16,7 @@ const OPERATOR_EMAIL = 'mpineda@higueraoriente.cl';
 
 // Correos que SOLO tienen acceso exclusivo a la Calculadora de Procesos
 const CALCULATOR_ONLY_EMAILS = [
-  'usuario-calculadora@higueraoriente.cl', // Reemplaza o agrega aquí los correos que solo usarán la calculadora
+  'mpineda@higueraoriente.cl', // Reemplaza o agrega aquí los correos que solo usarán la calculadora
 ];
 
 function App() {
