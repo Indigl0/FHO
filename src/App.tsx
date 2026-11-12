@@ -79,7 +79,7 @@ export function App() {
       } else {
         setUserRole('viewer');
         setUserEmail(null);
-        setView('consolidado');
+        setView('granel');
       }
     });
 
@@ -170,7 +170,7 @@ export function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setView('consolidado');
+    setView('granel');
   };
 
   if (loading) {
@@ -261,7 +261,7 @@ export function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación con el orden solicitado */}
+          {/* Menú de Navegación con el orden exacto solicitado */}
           <div className="px-4 sm:px-6 pb-3 pt-2 border-t border-slate-100">
             <div className="block md:hidden">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -279,16 +279,22 @@ export function App() {
                   onChange={(e) => setView(e.target.value as any)}
                   className="w-full appearance-none bg-transparent pl-11 pr-10 py-3 text-sm font-bold text-blue-900 focus:outline-none cursor-pointer"
                 >
-                  <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
-                  <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
                   {isSagOperator && <option value="planos">📄 Archivos SAG</option>}
                   {isCalculatorOnly && <option value="calculadora">🧮 Calculadora de Procesos</option>}
                   {!isSagOperator && !isCalculatorOnly && userRole === 'admin' && (
                     <>
                       <option value="granel">📊 Granel FHO</option>
+                      <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
                       <option value="rechazos">📋 Gestión Rechazos ASQUE</option>
+                      <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
                       <option value="calculadora">🧮 Calculadora de Procesos</option>
                       <option value="planos">📄 Archivos SAG</option>
+                    </>
+                  )}
+                  {(isSagOperator || isCalculatorOnly || userRole !== 'admin') && (
+                    <>
+                      <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
+                      <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
                     </>
                   )}
                 </select>
@@ -296,9 +302,6 @@ export function App() {
             </div>
 
             <nav className="hidden md:flex gap-1 overflow-x-auto scrollbar-none">
-              <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
-              <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
-
               {isSagOperator && (
                 <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
               )}
@@ -309,9 +312,18 @@ export function App() {
               {!isSagOperator && !isCalculatorOnly && userRole === 'admin' && (
                 <>
                   <TabButton active={view === 'granel'} onClick={() => setView('granel')} icon={<Table2 className="h-4 w-4" />} label="Granel FHO" />
+                  <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
                   <TabButton active={view === 'rechazos'} onClick={() => setView('rechazos')} icon={<ClipboardList className="h-4 w-4" />} label="Gestión Rechazos ASQUE" />
+                  <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
                   <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
                   <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
+                </>
+              )}
+
+              {(isSagOperator || isCalculatorOnly || userRole !== 'admin') && (
+                <>
+                  <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
+                  <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
                 </>
               )}
             </nav>
