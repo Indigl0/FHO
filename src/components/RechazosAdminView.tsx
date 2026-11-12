@@ -316,8 +316,8 @@ export const RechazosAdminView: React.FC = () => {
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas FHO</th>
-                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas Acopio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Rejillas FHO</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Rejillas Acopio</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-200 text-blue-950 border-r border-blue-300 font-black">Total</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
                 <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
@@ -458,11 +458,11 @@ export const RechazosAdminView: React.FC = () => {
                 <input type="text" name="procesoFho" placeholder="Ej: REEMBALAJE" value={formData.procesoFho ?? ''} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">N° Recillas FHO</label>
+                <label className="block text-slate-600 font-medium mb-1">N° Rejillas FHO</label>
                 <input type="number" name="nRecillasFho" placeholder="Ej: 150" value={formData.nRecillasFho} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
               </div>
               <div>
-                <label className="block text-slate-600 font-medium mb-1">N° Recillas Acopio</label>
+                <label className="block text-slate-600 font-medium mb-1">N° Rejillas Acopio</label>
                 <input type="number" name="nRecillasAcopio" placeholder="Ej: 122" value={formData.nRecillasAcopio} onChange={handleInputChange} className="w-full border border-slate-200 p-2.5 rounded-xl outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100 bg-blue-50/50 font-semibold" />
               </div>
               <div>
