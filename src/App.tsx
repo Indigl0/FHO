@@ -16,7 +16,7 @@ const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl', 'jgonzalez@h
 const CALCULATOR_ONLY_EMAILS: string[] = ['fho@gmail.com'];
 
 export function App() {
-  const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
+  const [view, setView] = useState<ViewKey | 'calculadora'>('granel');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -50,10 +50,10 @@ export function App() {
         const emailLower = email?.toLowerCase() || '';
         if (SAG_OPERATOR_EMAILS.includes(emailLower)) {
           setUserRole('admin');
-          setView('planos'); // Vista inicial preferida para operador SAG
+          setView('planos');
         } else if (CALCULATOR_ONLY_EMAILS.includes(emailLower)) {
           setUserRole('viewer');
-          setView('calculadora'); // Vista inicial preferida para calculadora
+          setView('calculadora');
         } else {
           setUserRole('admin');
           setView('granel');
@@ -261,7 +261,7 @@ export function App() {
             </div>
           </div>
 
-          {/* Menú de Navegación: Muestra tanto las vistas públicas como la privada correspondiente */}
+          {/* Menú de Navegación con el orden solicitado */}
           <div className="px-4 sm:px-6 pb-3 pt-2 border-t border-slate-100">
             <div className="block md:hidden">
               <label className="block text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-1">
@@ -279,15 +279,10 @@ export function App() {
                   onChange={(e) => setView(e.target.value as any)}
                   className="w-full appearance-none bg-transparent pl-11 pr-10 py-3 text-sm font-bold text-blue-900 focus:outline-none cursor-pointer"
                 >
-                  {/* Vistas públicas siempre disponibles para todos */}
                   <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
                   <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
-
-                  {/* Vistas específicas según el rol */}
                   {isSagOperator && <option value="planos">📄 Archivos SAG</option>}
                   {isCalculatorOnly && <option value="calculadora">🧮 Calculadora de Procesos</option>}
-
-                  {/* Vistas adicionales si es administrador general */}
                   {!isSagOperator && !isCalculatorOnly && userRole === 'admin' && (
                     <>
                       <option value="granel">📊 Granel FHO</option>
@@ -301,11 +296,9 @@ export function App() {
             </div>
 
             <nav className="hidden md:flex gap-1 overflow-x-auto scrollbar-none">
-              {/* Pestañas públicas comunes */}
               <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
               <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
 
-              {/* Pestañas específicas según el rol o permisos */}
               {isSagOperator && (
                 <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
               )}
