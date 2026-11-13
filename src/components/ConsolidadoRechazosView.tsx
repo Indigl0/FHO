@@ -270,47 +270,47 @@ export const ConsolidadoRechazosView: React.FC = () => {
 
       </div>
 
-      {/* GUÍA INFORMATIVA DE EMBALAJES Y PROCESOS (NUEVO) */}
-      <div className="bg-white rounded-2xl shadow-sm border border-emerald-200 overflow-hidden transition-all">
+      {/* GUÍA INFORMATIVA DE EMBALAJES Y PROCESOS (COMPACTA Y PROFESIONAL) */}
+      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
         <button
           onClick={() => setShowGuia(!showGuia)}
-          className="w-full px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center justify-between text-left hover:bg-emerald-100/60 transition cursor-pointer"
+          className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100/80 flex items-center justify-between text-left transition cursor-pointer"
         >
-          <div className="flex items-center gap-2.5">
-            <div className="p-2 bg-emerald-600 text-white rounded-xl">
+          <div className="flex items-center gap-2">
+            <div className="p-1.5 bg-emerald-600 text-white rounded-lg shadow-sm">
               <Info className="w-4 h-4" />
             </div>
             <div>
-              <h3 className="text-sm sm:text-base font-bold text-slate-800">
+              <span className="text-xs sm:text-sm font-bold text-slate-800">
                 Guía de Referencia: Embalajes y Procesos ASQUE
-              </h3>
-              <p className="text-xs text-slate-500">
-                Haz clic para ver el cuadro informativo de procesos por tipo de embalaje.
+              </span>
+              <p className="text-[11px] text-slate-500">
+                Consulta los procesos asociados por tipo de embalaje.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg">
-            <span>{showGuia ? 'Ocultar guía' : 'Ver cuadro informativo'}</span>
-            {showGuia ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
+            <span>{showGuia ? 'Ocultar' : 'Ver cuadro'}</span>
+            {showGuia ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </div>
         </button>
 
         {showGuia && (
-          <div className="p-4 sm:p-6 border-t border-emerald-100 bg-slate-50/50">
-            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
-              <table className="w-full border-collapse text-xs sm:text-sm">
+          <div className="border-t border-slate-200 bg-white p-3 sm:p-4">
+            <div className="overflow-x-auto rounded-lg border border-slate-200">
+              <table className="w-full border-collapse text-xs">
                 <thead>
-                  <tr className="bg-emerald-800 text-white font-semibold">
-                    <th className="py-3 px-4 text-left">EMBALAJES</th>
-                    <th className="py-3 px-4 text-left">PROCESO</th>
+                  <tr className="bg-slate-800 text-white uppercase tracking-wider text-[11px]">
+                    <th className="py-2.5 px-3 text-left font-semibold">Embalajes</th>
+                    <th className="py-2.5 px-3 text-left font-semibold">Proceso</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 text-slate-700">
                   {GUIA_EMBALAJES_PROCESOS.map((item, index) => (
-                    <tr key={index} className="hover:bg-emerald-50/40 transition">
-                      <td className="py-2.5 px-4 font-semibold text-slate-900">{item.embalaje}</td>
-                      <td className="py-2.5 px-4 text-slate-700">
-                        <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-900 rounded-md font-medium text-xs">
+                    <tr key={index} className="hover:bg-slate-50 transition">
+                      <td className="py-2 px-3 font-semibold text-slate-800">{item.embalaje}</td>
+                      <td className="py-2 px-3">
+                        <span className="inline-block px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded font-medium text-[11px]">
                           {item.proceso}
                         </span>
                       </td>
