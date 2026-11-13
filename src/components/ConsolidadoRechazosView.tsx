@@ -211,7 +211,7 @@ export const ConsolidadoRechazosView: React.FC = () => {
         </p>
       </div>
 
-      {/* Dos Recuadros Grandes (Estilo idéntico al otro consolidado) */}
+      {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
         {/* Recuadro 1: Naranja (Resumen General de Rechazos) */}
@@ -270,54 +270,47 @@ export const ConsolidadoRechazosView: React.FC = () => {
 
       </div>
 
-      {/* GUÍA INFORMATIVA DE EMBALAJES Y PROCESOS (COMPACTA Y PROFESIONAL) */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      {/* GUÍA DE REFERENCIA: EMBALAJES Y PROCESOS ASQUE (ULTRA PROFESIONAL / GRID MODERNO) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden transition-all">
         <button
           onClick={() => setShowGuia(!showGuia)}
-          className="w-full px-4 py-3 bg-slate-50 hover:bg-slate-100/80 flex items-center justify-between text-left transition cursor-pointer"
+          className="w-full px-5 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 hover:bg-slate-100/60 flex items-center justify-between text-left transition cursor-pointer"
         >
-          <div className="flex items-center gap-2">
-            <div className="p-1.5 bg-emerald-600 text-white rounded-lg shadow-sm">
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs">
               <Info className="w-4 h-4" />
             </div>
             <div>
-              <span className="text-xs sm:text-sm font-bold text-slate-800">
+              <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
                 Guía de Referencia: Embalajes y Procesos ASQUE
-              </span>
-              <p className="text-[11px] text-slate-500">
-                Consulta los procesos asociados por tipo de embalaje.
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Panel informativo de procesos asociados por tipo de embalaje.
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-1 text-xs font-semibold text-emerald-700 bg-emerald-50 border border-emerald-200 px-2.5 py-1 rounded-lg">
-            <span>{showGuia ? 'Ocultar' : 'Ver cuadro'}</span>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/90 border border-emerald-200/70 px-3.5 py-1.5 rounded-xl shadow-2xs">
+            <span>{showGuia ? 'Ocultar cuadro' : 'Ver cuadro informativo'}</span>
             {showGuia ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
           </div>
         </button>
 
         {showGuia && (
-          <div className="border-t border-slate-200 bg-white p-3 sm:p-4">
-            <div className="overflow-x-auto rounded-lg border border-slate-200">
-              <table className="w-full border-collapse text-xs">
-                <thead>
-                  <tr className="bg-slate-800 text-white uppercase tracking-wider text-[11px]">
-                    <th className="py-2.5 px-3 text-left font-semibold">Embalajes</th>
-                    <th className="py-2.5 px-3 text-left font-semibold">Proceso</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-slate-100 text-slate-700">
-                  {GUIA_EMBALAJES_PROCESOS.map((item, index) => (
-                    <tr key={index} className="hover:bg-slate-50 transition">
-                      <td className="py-2 px-3 font-semibold text-slate-800">{item.embalaje}</td>
-                      <td className="py-2 px-3">
-                        <span className="inline-block px-2 py-0.5 bg-emerald-50 border border-emerald-200 text-emerald-800 rounded font-medium text-[11px]">
-                          {item.proceso}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {GUIA_EMBALAJES_PROCESOS.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="bg-white border border-slate-200/70 rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all"
+                >
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
+                    {item.embalaje}
+                  </span>
+                  <span className="text-[11px] font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/60 rounded-lg text-right shrink-0">
+                    {item.proceso}
+                  </span>
+                </div>
+              ))}
             </div>
           </div>
         )}
