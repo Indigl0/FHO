@@ -1,11 +1,28 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Download, BarChart4, Package, Layers } from 'lucide-react';
+import { Search, Download, BarChart4, Package, Layers, Info, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../utils/supabase';
+
+const GUIA_EMBALAJES_PROCESOS = [
+  { embalaje: '8 X 18 B/F', proceso: 'Fumigación' },
+  { embalaje: '12 X 6 OZ B/F', proceso: 'Fumigación' },
+  { embalaje: '12 X 18 B/F', proceso: 'Fumigación' },
+  { embalaje: '8 X 18 BF CONVENCIONAL', proceso: 'Fumigación' },
+  { embalaje: '12 X 6 OZ B/F', proceso: 'Fumigación' },
+  { embalaje: '8 X 18 S/E', proceso: 'Fumigación' },
+  { embalaje: '8 x 18 OZ ORGÁNICO S/E', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '12 X 6 OZ S/E ORGÁNICO', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '12 x 1 PINTA PLANO S/E ORGÁNICO', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '8 X 18 STO ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 X 6 STO ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 X 6 BF ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 x 1 PINTA BF ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+];
 
 export const ConsolidadoRechazosView: React.FC = () => {
   const [rechazos, setRechazos] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [showGuia, setShowGuia] = useState(false);
 
   useEffect(() => {
     fetchRechazos();
@@ -251,6 +268,59 @@ export const ConsolidadoRechazosView: React.FC = () => {
           </div>
         </div>
 
+      </div>
+
+      {/* GUÍA INFORMATIVA DE EMBALAJES Y PROCESOS (NUEVO) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-emerald-200 overflow-hidden transition-all">
+        <button
+          onClick={() => setShowGuia(!showGuia)}
+          className="w-full px-5 py-4 bg-gradient-to-r from-emerald-50 to-teal-50 flex items-center justify-between text-left hover:bg-emerald-100/60 transition cursor-pointer"
+        >
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 bg-emerald-600 text-white rounded-xl">
+              <Info className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-sm sm:text-base font-bold text-slate-800">
+                Guía de Referencia: Embalajes y Procesos ASQUE
+              </h3>
+              <p className="text-xs text-slate-500">
+                Haz clic para ver el cuadro informativo de procesos por tipo de embalaje.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-bold text-emerald-700 bg-emerald-100 px-3 py-1.5 rounded-lg">
+            <span>{showGuia ? 'Ocultar guía' : 'Ver cuadro informativo'}</span>
+            {showGuia ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+          </div>
+        </button>
+
+        {showGuia && (
+          <div className="p-4 sm:p-6 border-t border-emerald-100 bg-slate-50/50">
+            <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+              <table className="w-full border-collapse text-xs sm:text-sm">
+                <thead>
+                  <tr className="bg-emerald-800 text-white font-semibold">
+                    <th className="py-3 px-4 text-left">EMBALAJES</th>
+                    <th className="py-3 px-4 text-left">PROCESO</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 text-slate-700">
+                  {GUIA_EMBALAJES_PROCESOS.map((item, index) => (
+                    <tr key={index} className="hover:bg-emerald-50/40 transition">
+                      <td className="py-2.5 px-4 font-semibold text-slate-900">{item.embalaje}</td>
+                      <td className="py-2.5 px-4 text-slate-700">
+                        <span className="inline-block px-2.5 py-1 bg-emerald-100 text-emerald-900 rounded-md font-medium text-xs">
+                          {item.proceso}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Barra de Búsqueda y Botón de Exportar */}
