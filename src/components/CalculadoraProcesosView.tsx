@@ -5,24 +5,25 @@ interface EmbalajeItem {
   id: string;
   embalaje: string;
   pesoNetoEmbalaje: number; // en KG
+  cajasPorPallet?: number;
 }
 
 const INITIAL_DATA: EmbalajeItem[] = [
-  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 3.75 },
-  { id: '2', embalaje: '12 X 125 GRS', pesoNetoEmbalaje: 1.5 },
-  { id: '3', embalaje: '12 X 18 OZ (7 X7)', pesoNetoEmbalaje: 6.12 },
+  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 3.75, cajasPorPallet: 204 },
+  { id: '2', embalaje: '12 X 125 GRS', pesoNetoEmbalaje: 1.5, cajasPorPallet: 375 },
+  { id: '3', embalaje: '12 X 18 OZ (7 X7)', pesoNetoEmbalaje: 6.12, cajasPorPallet: 115 },
   { id: '4', embalaje: '12 X 200 GRS', pesoNetoEmbalaje: 2.4 },
-  { id: '5', embalaje: '12 X 250 GRS', pesoNetoEmbalaje: 3.0 },
+  { id: '5', embalaje: '12 X 250 GRS', pesoNetoEmbalaje: 3.0, cajasPorPallet: 204 },
   { id: '6', embalaje: '12 X 300 GRS', pesoNetoEmbalaje: 3.6 },
-  { id: '7', embalaje: '12 X 500', pesoNetoEmbalaje: 6.0 },
-  { id: '8', embalaje: '12 X 6 OZ', pesoNetoEmbalaje: 2.04 },
+  { id: '7', embalaje: '12 X 500', pesoNetoEmbalaje: 6.0, cajasPorPallet: 115 },
+  { id: '8', embalaje: '12 X 6 OZ', pesoNetoEmbalaje: 2.04, cajasPorPallet: 324 },
   { id: '9', embalaje: '18 X 150 GRS', pesoNetoEmbalaje: 2.7 },
   { id: '10', embalaje: '28 X 200 GRS', pesoNetoEmbalaje: 5.6 },
-  { id: '11', embalaje: '3 KG GRANEL', pesoNetoEmbalaje: 3.0 },
-  { id: '12', embalaje: '3,6 KG GRANEL', pesoNetoEmbalaje: 3.6 },
-  { id: '13', embalaje: '42 X125 GRS', pesoNetoEmbalaje: 5.25 },
-  { id: '14', embalaje: '42 X 150 GRS', pesoNetoEmbalaje: 6.3 },
-  { id: '15', embalaje: '8 X 18 OZ (7X5)', pesoNetoEmbalaje: 4.08 },
+  { id: '11', embalaje: '3 KG GRANEL', pesoNetoEmbalaje: 3.0, cajasPorPallet: 324 },
+  { id: '12', embalaje: '3,6 KG GRANEL', pesoNetoEmbalaje: 3.6, cajasPorPallet: 272 },
+  { id: '13', embalaje: '42 X125 GRS', pesoNetoEmbalaje: 5.25, cajasPorPallet: 90 },
+  { id: '14', embalaje: '42 X 150 GRS', pesoNetoEmbalaje: 6.3, cajasPorPallet: 90 },
+  { id: '15', embalaje: '8 X 18 OZ (7X5)', pesoNetoEmbalaje: 4.08, cajasPorPallet: 204 },
 ];
 
 export const CalculadoraProcesosView: React.FC = () => {
@@ -147,8 +148,11 @@ export const CalculadoraProcesosView: React.FC = () => {
                 Formato Seleccionado
               </span>
               <h3 className="text-lg sm:text-xl font-bold text-slate-900 mt-2">{embalajeSeleccionado.embalaje}</h3>
-              <p className="text-xs sm:text-sm text-slate-600">
-                Peso Neto del Embalaje: <strong className="text-slate-800">{embalajeSeleccionado.pesoNetoEmbalaje} KG</strong>
+              <p className="text-xs sm:text-sm text-slate-600 flex flex-wrap items-center justify-center md:justify-start gap-x-4 gap-y-1 mt-1">
+                <span>Peso Neto del Embalaje: <strong className="text-slate-800">{embalajeSeleccionado.pesoNetoEmbalaje} KG</strong></span>
+                {embalajeSeleccionado.cajasPorPallet && (
+                  <span>📦 Cajas por Pallet: <strong className="text-slate-800">{embalajeSeleccionado.cajasPorPallet} cajas</strong></span>
+                )}
               </p>
             </div>
 
