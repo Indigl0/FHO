@@ -39,6 +39,8 @@ export const CalculadoraProcesosView: React.FC = () => {
 
   const embalajeSeleccionado = INITIAL_DATA.find((item) => item.id === selectedEmbalajeId);
 
+  // Lógica unificada para el cálculo de cajas estimadas para todos los embalajes:
+  // (Kilos Disponibles / Factor Deshidratación) / Peso Neto del Embalaje
   const divisorSim = embalajeSeleccionado ? embalajeSeleccionado.pesoNetoEmbalaje * deshidratacion : 0;
   const cajasSimuladas = divisorSim > 0 && numKilos > 0 ? numKilos / divisorSim : 0;
 
