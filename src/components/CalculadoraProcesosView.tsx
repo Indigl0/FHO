@@ -41,10 +41,11 @@ export const CalculadoraProcesosView: React.FC = () => {
 
   const embalajeSeleccionado = INITIAL_DATA.find((item) => item.id === selectedEmbalajeId);
 
-  // CÁLCULO DIRECTO: Kilos Disponibles / Peso Neto del Embalaje seleccionado (sin deshidratación)
-  const cajasSimuladas = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 && numKilos > 0 
-    ? numKilos / embalajeSeleccionado.pesoNetoEmbalaje 
-    : 0;
+  // LÓGICA DEL SISTEMA DEL PRIMER VIDEO:
+  // (Bandejas Necesarias * Peso del Tótem) / (Peso Neto del Embalaje * Deshidratación)
+  const totalKilosTeoricosTox = bandejasTotemCalc * numPesoTotem;
+  const divisorSim = embalajeSeleccionado ? embalajeSeleccionado.pesoNetoEmbalaje * deshidratacion : 0;
+  const cajasSimuladas = divisorSim > 0 && totalKilosTeoricosTox > 0 ? totalKilosTeoricosTox / divisorSim : 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
@@ -56,7 +57,7 @@ export const CalculadoraProcesosView: React.FC = () => {
             <span>Módulo de Cálculo y Simulador de Procesos</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Selecciona un embalaje específico para consultar su rendimiento.
+            Selecciona un embalaje específico para consultar su rendimiento (Deshidratación: {deshidratacion}).
           </p>
         </div>
 
@@ -163,12 +164,12 @@ export const CalculadoraProcesosView: React.FC = () => {
             <div className="w-full md:w-auto bg-white px-6 py-4 rounded-xl shadow-sm border border-emerald-100 text-center md:min-w-[240px]">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cajas Estimadas a Obtener</p>
               <h2 className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">
-                {numKilos > 0 ? (
+                {numKilos > 0 && numPesoTotem > 0 ? (
                   <>
                     {cajasSimuladas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-600">cajas</span>
                   </>
                 ) : (
-                  <span className="text-xs sm:text-sm text-slate-400 font-normal">Ingrese kilos arriba</span>
+                  <span className="text-xs sm:text-sm text-slate-400 font-normal">Ingrese kilos y peso tótem arriba</span>
                 )}
               </h2>
             </div>
