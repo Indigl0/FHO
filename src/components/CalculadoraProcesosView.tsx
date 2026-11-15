@@ -41,12 +41,10 @@ export const CalculadoraProcesosView: React.FC = () => {
 
   const embalajeSeleccionado = INITIAL_DATA.find((item) => item.id === selectedEmbalajeId);
 
-  // LÓGICA CORREGIDA:
-  // 1. Kilos netos ajustados por deshidratación (Kilos Totales / Factor Deshidratación)
-  // 2. Cajas estimadas = Kilos Netos / Peso Neto del Embalaje
-  const kilosNetosAjustados = deshidratacion > 0 ? numKilos / deshidratacion : 0;
+  // LÓGICA OFICIAL EXACTA DEL SISTEMA:
+  // Cajas estimadas = Kilos Totales / Peso Neto del Embalaje
   const cajasSimuladas = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
-    ? kilosNetosAjustados / embalajeSeleccionado.pesoNetoEmbalaje 
+    ? numKilos / embalajeSeleccionado.pesoNetoEmbalaje 
     : 0;
 
   return (
