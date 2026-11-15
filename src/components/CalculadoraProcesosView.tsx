@@ -41,11 +41,13 @@ export const CalculadoraProcesosView: React.FC = () => {
 
   const embalajeSeleccionado = INITIAL_DATA.find((item) => item.id === selectedEmbalajeId);
 
-  // LÓGICA DEL SISTEMA DEL PRIMER VIDEO:
-  // (Bandejas Necesarias * Peso del Tótem) / (Peso Neto del Embalaje * Deshidratación)
-  const totalKilosTeoricosTox = bandejasTotemCalc * numPesoTotem;
-  const divisorSim = embalajeSeleccionado ? embalajeSeleccionado.pesoNetoEmbalaje * deshidratacion : 0;
-  const cajasSimuladas = divisorSim > 0 && totalKilosTeoricosTox > 0 ? totalKilosTeoricosTox / divisorSim : 0;
+  // LÓGICA CORREGIDA:
+  // 1. Kilos netos ajustados por deshidratación (Kilos Totales / Factor Deshidratación)
+  // 2. Cajas estimadas = Kilos Netos / Peso Neto del Embalaje
+  const kilosNetosAjustados = deshidratacion > 0 ? numKilos / deshidratacion : 0;
+  const cajasSimuladas = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
+    ? kilosNetosAjustados / embalajeSeleccionado.pesoNetoEmbalaje 
+    : 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
@@ -85,7 +87,7 @@ export const CalculadoraProcesosView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-center">
           <div>
             <label className="block text-xs text-slate-300 mb-1.5 font-medium">
-              Kilos Disponibles (Ej. 680 KG)
+              Kilos Disponibles (Ej. 702.98 KG)
             </label>
             <input
               type="number"
@@ -164,12 +166,12 @@ export const CalculadoraProcesosView: React.FC = () => {
             <div className="w-full md:w-auto bg-white px-6 py-4 rounded-xl shadow-sm border border-emerald-100 text-center md:min-w-[240px]">
               <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Cajas Estimadas a Obtener</p>
               <h2 className="text-2xl sm:text-3xl font-black text-emerald-600 mt-1">
-                {numKilos > 0 && numPesoTotem > 0 ? (
+                {numKilos > 0 ? (
                   <>
                     {cajasSimuladas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-600">cajas</span>
                   </>
                 ) : (
-                  <span className="text-xs sm:text-sm text-slate-400 font-normal">Ingrese kilos y peso tótem arriba</span>
+                  <span className="text-xs sm:text-sm text-slate-400 font-normal">Ingrese kilos arriba</span>
                 )}
               </h2>
             </div>
