@@ -9,7 +9,7 @@ interface EmbalajeItem {
 }
 
 const INITIAL_DATA: EmbalajeItem[] = [
-  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 3.75, cajasPorPallet: 204 },
+  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 3.32, cajasPorPallet: 204 },
   { id: '2', embalaje: '12 X 125 GRS', pesoNetoEmbalaje: 1.5, cajasPorPallet: 375 },
   { id: '3', embalaje: '12 X 18 OZ (7 X7)', pesoNetoEmbalaje: 6.12, cajasPorPallet: 115 },
   { id: '4', embalaje: '12 X 200 GRS', pesoNetoEmbalaje: 2.4 },
@@ -87,7 +87,7 @@ export const CalculadoraProcesosView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-center">
           <div>
             <label className="block text-xs text-slate-300 mb-1.5 font-medium">
-              Kilos Disponibles (Ej. 702.98 KG)
+              Kilos Disponibles (Ej. 734 KG)
             </label>
             <input
               type="number"
