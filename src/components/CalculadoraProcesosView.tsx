@@ -27,7 +27,7 @@ const INITIAL_DATA: EmbalajeItem[] = [
 ];
 
 export const CalculadoraProcesosView: React.FC = () => {
-  const [rendimientoObjetivo, setRendimientoObjetivo] = useState<number>(97); // 97% por defecto para evitar sobreembalaje
+  const [rendimientoObjetivo, setRendimientoObjetivo] = useState<number>(94); // Predeterminado en 94% para mayor seguridad anti-sobreembalaje
   
   const [kilosDisponibles, setKilosDisponibles] = useState<number | ''>('');
   const [pesoTotem, setPesoTotem] = useState<number | ''>('');
@@ -46,7 +46,7 @@ export const CalculadoraProcesosView: React.FC = () => {
     ? numKilos / embalajeSeleccionado.pesoNetoEmbalaje 
     : 0;
 
-  // 2. Cajas Seguras (Aplicando el % de Rendimiento Objetivo para no sobreembalar)
+  // 2. Cajas Seguras (Aplicando el % de Rendimiento Objetivo del 94% para no sobreembalar)
   const kilosMeta = numKilos * (rendimientoObjetivo / 100);
   const cajasSeguras = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
     ? kilosMeta / embalajeSeleccionado.pesoNetoEmbalaje 
@@ -77,7 +77,7 @@ export const CalculadoraProcesosView: React.FC = () => {
             min="80"
             max="100"
             value={rendimientoObjetivo}
-            onChange={(e) => setRendimientoObjetivo(parseFloat(e.target.value) || 97)}
+            onChange={(e) => setRendimientoObjetivo(parseFloat(e.target.value) || 94)}
             className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center"
           />
         </div>
@@ -92,7 +92,7 @@ export const CalculadoraProcesosView: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-center">
           <div>
             <label className="block text-xs text-slate-300 mb-1.5 font-medium">
-              Kilos Guía (Ej. 3744.36 KG)
+              Kilos Guía (Ej. 703 KG)
             </label>
             <input
               type="number"
