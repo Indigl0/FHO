@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Calculator, Scale, Layers, PackageCheck, ChevronDown, ShieldCheck } from 'lucide-react';
+import { Calculator, Scale, Layers, PackageCheck, ChevronDown, Target } from 'lucide-react';
 
 interface EmbalajeItem {
   id: string;
@@ -9,7 +9,7 @@ interface EmbalajeItem {
 }
 
 const INITIAL_DATA: EmbalajeItem[] = [
-  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 3.18, cajasPorPallet: 204 },
+  { id: '1', embalaje: '12 X 11 OZ (1 Pinta)', pesoNetoEmbalaje: 4.0, cajasPorPallet: 204 },
   { id: '2', embalaje: '12 X 125 GRS', pesoNetoEmbalaje: 1.5, cajasPorPallet: 375 },
   { id: '3', embalaje: '12 X 18 OZ (7 X7)', pesoNetoEmbalaje: 6.12, cajasPorPallet: 115 },
   { id: '4', embalaje: '12 X 200 GRS', pesoNetoEmbalaje: 2.4 },
@@ -27,7 +27,7 @@ const INITIAL_DATA: EmbalajeItem[] = [
 ];
 
 export const CalculadoraProcesosView: React.FC = () => {
-  const [porcentajeDeshidratacion, setPorcentajeDeshidratacion] = useState<number>(9.08); // Actualizado según tu ejemplo
+  const [rendimientoObjetivo, setRendimientoObjetivo] = useState<number>(97); // 97% por defecto para evitar sobreembalaje
   
   const [kilosDisponibles, setKilosDisponibles] = useState<number | ''>('');
   const [pesoTotem, setPesoTotem] = useState<number | ''>('');
@@ -41,20 +41,20 @@ export const CalculadoraProcesosView: React.FC = () => {
 
   const embalajeSeleccionado = INITIAL_DATA.find((item) => item.id === selectedEmbalajeId);
 
-  // 1. Sugerencia Oficial del Sistema (Kilos Brutos / Peso Neto)
-  const cajasSimuladas = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
+  // 1. Sugerencia Teórica 100% (División directa)
+  const cajasTeoricas = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
     ? numKilos / embalajeSeleccionado.pesoNetoEmbalaje 
     : 0;
 
-  // 2. Cajas Seguras (Descontando la Deshidratación real para evitar reembalaje)
-  const kilosNetosReales = numKilos * (1 - (porcentajeDeshidratacion / 100));
+  // 2. Cajas Seguras (Aplicando el % de Rendimiento Objetivo para no sobreembalar)
+  const kilosMeta = numKilos * (rendimientoObjetivo / 100);
   const cajasSeguras = embalajeSeleccionado && embalajeSeleccionado.pesoNetoEmbalaje > 0 
-    ? kilosNetosReales / embalajeSeleccionado.pesoNetoEmbalaje 
+    ? kilosMeta / embalajeSeleccionado.pesoNetoEmbalaje 
     : 0;
 
   return (
     <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6 space-y-6">
-      {/* Encabezado Responsivo con Parámetros Globales */}
+      {/* Encabezado Responsivo */}
       <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 bg-white p-4 sm:p-6 rounded-2xl shadow-sm border border-slate-100">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold text-slate-800 flex items-center gap-2.5">
@@ -62,23 +62,23 @@ export const CalculadoraProcesosView: React.FC = () => {
             <span>Módulo de Cálculo y Simulador de Procesos</span>
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 mt-1">
-            Calcula cajas seguras descontando la deshidratación real para evitar reembalajes.
+            Calcula el tope de cajas seguras para alcanzar tu rendimiento objetivo sin sobreembalar.
           </p>
         </div>
 
-        {/* Parámetro Global: % Deshidratación */}
+        {/* Parámetro Global: % Rendimiento Objetivo */}
         <div className="w-full lg:w-auto flex items-center justify-end gap-3 bg-slate-50 p-2.5 rounded-xl border border-slate-200">
           <label className="text-xs font-semibold text-slate-600 uppercase tracking-wide flex items-center gap-1">
-            <ShieldCheck className="w-4 h-4 text-emerald-600" /> % Deshidratación:
+            <Target className="w-4 h-4 text-emerald-600" /> Rendimiento Obj. (%):
           </label>
           <input
             type="number"
-            step="0.01"
-            min="0"
-            max="30"
-            value={porcentajeDeshidratacion}
-            onChange={(e) => setPorcentajeDeshidratacion(parseFloat(e.target.value) || 0)}
-            className="w-24 px-2 py-1 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center"
+            step="0.5"
+            min="80"
+            max="100"
+            value={rendimientoObjetivo}
+            onChange={(e) => setRendimientoObjetivo(parseFloat(e.target.value) || 97)}
+            className="w-20 px-2 py-1 bg-white border border-slate-300 rounded-lg text-sm font-semibold text-slate-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 text-center"
           />
         </div>
       </div>
@@ -87,12 +87,12 @@ export const CalculadoraProcesosView: React.FC = () => {
       <div className="bg-gradient-to-r from-emerald-900 to-slate-900 p-5 sm:p-8 rounded-2xl text-white shadow-xl space-y-5">
         <div className="flex items-center gap-2 text-emerald-400 font-semibold text-xs sm:text-sm uppercase tracking-wider">
           <Scale className="w-5 h-5 shrink-0" />
-          <span>1. Ingrese Kilos y Formato de Tótem / Bandeja Base</span>
+          <span>1. Ingrese Kilos de la Guía y Formato de Tótem</span>
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 items-center">
           <div>
             <label className="block text-xs text-slate-300 mb-1.5 font-medium">
-              Kilos Brutos Guía (Ej. 3744.36 KG)
+              Kilos Guía (Ej. 3744.36 KG)
             </label>
             <input
               type="number"
@@ -152,7 +152,7 @@ export const CalculadoraProcesosView: React.FC = () => {
           <ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 pointer-events-none" />
         </div>
 
-        {/* Tarjetas de Resultado Comparativo */}
+        {/* Tarjetas Comparativas de Cajas */}
         {embalajeSeleccionado ? (
           <div className="mt-6 p-5 sm:p-6 bg-emerald-50/70 border border-emerald-200 rounded-2xl space-y-4 transition-all">
             <div className="space-y-1 text-center md:text-left">
@@ -170,11 +170,11 @@ export const CalculadoraProcesosView: React.FC = () => {
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-3 border-t border-emerald-200/60">
               <div className="bg-white px-5 py-4 rounded-xl shadow-sm border border-emerald-100 text-center">
-                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sugerencia Sistema (Bruta)</p>
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">Sugerencia Teórica (100% Kilos)</p>
                 <h2 className="text-2xl sm:text-3xl font-black text-slate-800 mt-1">
                   {numKilos > 0 ? (
                     <>
-                      {cajasSimuladas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-600">cajas</span>
+                      {cajasTeoricas.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-slate-600">cajas</span>
                     </>
                   ) : (
                     <span className="text-xs sm:text-sm text-slate-400 font-normal">Ingrese kilos arriba</span>
@@ -184,18 +184,18 @@ export const CalculadoraProcesosView: React.FC = () => {
 
               <div className="bg-emerald-600 text-white px-5 py-4 rounded-xl shadow-md text-center">
                 <p className="text-xs font-semibold text-emerald-100 uppercase tracking-wide flex items-center justify-center gap-1">
-                  <ShieldCheck className="w-4 h-4" /> Cajas Seguras (Real - {porcentajeDeshidratacion}%)
+                  <Target className="w-4 h-4" /> Cajas Seguras ({rendimientoObjetivo}%)
                 </p>
                 <h2 className="text-2xl sm:text-3xl font-black text-white mt-1">
                   {numKilos > 0 ? (
                     <>
-                      {cajasSeguras.toLocaleString('es-CL', { maximumFractionDigits: 1 })} <span className="text-sm font-normal text-emerald-200">cajas</span>
+                      {Math.floor(cajasSeguras).toLocaleString('es-CL')} <span className="text-sm font-normal text-emerald-200">cajas máx.</span>
                     </>
                   ) : (
                     <span className="text-xs sm:text-sm text-emerald-200 font-normal">Ingrese kilos arriba</span>
                   )}
                 </h2>
-                <p className="text-[11px] text-emerald-100 mt-1">Ideal para evitar reembalaje</p>
+                <p className="text-[11px] text-emerald-100 mt-1">Tope exacto para no sobreembalar</p>
               </div>
             </div>
           </div>
