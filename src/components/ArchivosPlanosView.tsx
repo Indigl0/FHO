@@ -52,7 +52,6 @@ export default function ArchivosPlanosView() {
     setSuccessMsg('');
     setInvalidField(null);
 
-    // Validaciones estrictas con auto-scroll al inicio
     if (!nSolicitud.trim()) {
       setErrorMsg('El campo N° Solicitud (ISV) es obligatorio.');
       setInvalidField('nSolicitud');
@@ -78,7 +77,6 @@ export default function ArchivosPlanosView() {
       return;
     }
 
-    // Validar pallets
     for (let i = 0; i < pallets.length; i++) {
       const p = pallets[i];
       if (!p.nPallet.trim()) {
@@ -95,8 +93,8 @@ export default function ArchivosPlanosView() {
       }
     }
 
-    // Construcción del Archivo Plano SAG con separadores "|" estrictos
-    let contenido = '';
+    // Construcción estricta de líneas separadas por pipe (|) y salto de línea Windows (\r\n)
+    const lineas: string[] = [];
     
     pallets.forEach((p, index) => {
       const numLinea = String(index + 1).padStart(3, '0');
@@ -106,18 +104,22 @@ export default function ArchivosPlanosView() {
       const pais1 = codigoPais1.padEnd(3, '0');
       const pais2 = codigoPais2.padEnd(3, '0');
       const fch = fecha.padEnd(8, '0');
-      const nroPallet = String(p.nPallet || '').padEnd(10, ' ').slice(0, 10);
+      const nroPallet = String(p.nPallet || '').padStart(10, '0'); // Asegura ceros a la izquierda si es folio numérico
       const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
 
-      // Se asegura el uso de '|' como delimitador entre columnas y salto de línea final
-      contenido += `${numLinea}|${est}|${isv}|${esp}|${pais1}|${pais2}|${fch}|${nroPallet}|${cjs}\r\n`;
+      // Estructura exacta requerida con pipes
+      const lineaFormateada = `${numLinea}|${est}|${isv}|${esp}|${pais1}|${pais2}|${fch}|${nroPallet}|${cjs}`;
+      lineas.push(lineaFormateada);
     });
 
-    // Descarga del archivo
+    // Unimos con \r\n explícito para formato de texto de Windows
+    const contenidoFinal = lineas.join('\r\n') + '\r\n';
+
+    // Descarga forzada como texto plano puro
     const extension = tipoFormato.toLowerCase();
     const nombreArchivo = `SAG_${nSolicitud}_${tipoFormato}.${extension}`;
     
-    const blob = new Blob([contenido], { type: 'text/plain;charset=utf-8;' });
+    const blob = new Blob([contenidoFinal], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
@@ -134,7 +136,6 @@ export default function ArchivosPlanosView() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
-      {/* Encabezado del Módulo */}
       <div className="flex flex-col items-center justify-center text-center space-y-1.5 py-4 border-b border-gray-200">
         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
           <FileText className="h-3.5 w-3.5" /> Módulo de Cumplimiento SAG
@@ -147,23 +148,20 @@ export default function ArchivosPlanosView() {
         </p>
       </div>
 
-      {/* Alerta de Error */}
       {errorMsg && (
-        <div className="flex items-center gap-2.5 bg-rose-50 border border-rose-200 text-rose-900 p-4 rounded-2xl shadow-sm text-xs font-bold animate-fadeIn">
+        <div className="flex items-center gap-2.5 bg-rose-50 border border-rose-200 text-rose-900 p-4 rounded-2xl shadow-sm text-xs font-bold">
           <AlertCircle className="h-5 w-5 text-rose-600 shrink-0" />
           <span>{errorMsg}</span>
         </div>
       )}
 
-      {/* Alerta de Éxito */}
       {successMsg && (
-        <div className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl shadow-sm text-xs font-bold animate-fadeIn">
+        <div className="flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-900 p-4 rounded-2xl shadow-sm text-xs font-bold">
           <CheckCircle2 className="h-5 w-5 text-emerald-600 shrink-0" />
           <span>{successMsg}</span>
         </div>
       )}
 
-      {/* 1. Selección de Formato */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">1. Seleccione Formato</h3>
         <div className="flex items-center gap-4">
@@ -181,21 +179,13 @@ export default function ArchivosPlanosView() {
         </div>
       </div>
 
-      {/* 2. Datos de Encabezado */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">2. Datos de Encabezado</h3>
-        
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Establecimiento (4 dígitos)</label>
-            <input
-              type="text"
-              value={establecimiento}
-              disabled
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed"
-            />
+            <input type="text" value={establecimiento} disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed" />
           </div>
-
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Solicitud / ISV (5 dígitos) *</label>
             <input
@@ -204,22 +194,12 @@ export default function ArchivosPlanosView() {
               placeholder="Ej: 31000"
               value={nSolicitud}
               onChange={(e) => setNSolicitud(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
-                invalidField === 'nSolicitud' 
-                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
-                  : 'border-gray-300 focus:border-blue-500'
-              }`}
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${invalidField === 'nSolicitud' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
             />
           </div>
-
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código de Especie</label>
-            <input
-              type="text"
-              value={codigoEspecie}
-              disabled
-              className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed"
-            />
+            <input type="text" value={codigoEspecie} disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed" />
           </div>
         </div>
 
@@ -231,14 +211,9 @@ export default function ArchivosPlanosView() {
               maxLength={3}
               value={codigoPais1}
               onChange={(e) => setCodigoPais1(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
-                invalidField === 'pais1' 
-                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' 
-                  : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
-              }`}
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais1' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
             />
           </div>
-
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
             <input
@@ -246,14 +221,9 @@ export default function ArchivosPlanosView() {
               maxLength={3}
               value={codigoPais2}
               onChange={(e) => setCodigoPais2(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
-                invalidField === 'pais2' 
-                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' 
-                  : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
-              }`}
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais2' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
             />
           </div>
-
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD) *</label>
             <input
@@ -261,17 +231,12 @@ export default function ArchivosPlanosView() {
               maxLength={8}
               value={fecha}
               onChange={(e) => setFecha(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
-                invalidField === 'fecha' 
-                  ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
-                  : 'border-gray-300 focus:border-blue-500'
-              }`}
+              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${invalidField === 'fecha' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
             />
           </div>
         </div>
       </div>
 
-      {/* 3. Detalle de Pallets */}
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
           <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">3. Detalle de Pallets (Estructura Interna)</h3>
@@ -291,23 +256,17 @@ export default function ArchivosPlanosView() {
             return (
               <div key={p.id} className="flex items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
                 <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
-                
                 <div className="flex-1">
-                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (máx. 10 dígitos) *</label>
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet *</label>
                   <input
                     type="text"
                     maxLength={10}
                     placeholder="Ej: 0000011111"
                     value={p.nPallet}
                     onChange={(e) => handlePalletChange(p.id, 'nPallet', e.target.value)}
-                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
-                      isFolioInvalid 
-                        ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
-                        : 'border-gray-300 focus:border-blue-500'
-                    }`}
+                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${isFolioInvalid ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
                   />
                 </div>
-
                 <div className="w-36">
                   <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
                   <input
@@ -316,19 +275,13 @@ export default function ArchivosPlanosView() {
                     placeholder="0"
                     value={p.cantidadCajas}
                     onChange={(e) => handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))}
-                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
-                      isCajasInvalid 
-                        ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' 
-                        : 'border-gray-300 focus:border-blue-500'
-                    }`}
+                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${isCajasInvalid ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
                   />
                 </div>
-
                 <button
                   onClick={() => handleRemovePallet(p.id)}
                   disabled={pallets.length === 1}
-                  className="mt-4 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-30 disabled:hover:bg-transparent disabled:hover:text-gray-400"
-                  title="Eliminar pallet"
+                  className="mt-4 p-2 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition disabled:opacity-30"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -338,7 +291,6 @@ export default function ArchivosPlanosView() {
         </div>
       </div>
 
-      {/* Botón de Generación Final */}
       <div className="flex justify-end pt-2">
         <button
           onClick={generarArchivoPlano}
