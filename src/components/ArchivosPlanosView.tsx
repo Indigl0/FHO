@@ -95,7 +95,7 @@ export default function ArchivosPlanosView() {
       }
     }
 
-    // Construcción del Archivo Plano SAG según norma D-PA-EA-021
+    // Construcción del Archivo Plano SAG con separadores "|" estrictos
     let contenido = '';
     
     pallets.forEach((p, index) => {
@@ -109,6 +109,7 @@ export default function ArchivosPlanosView() {
       const nroPallet = String(p.nPallet || '').padEnd(10, ' ').slice(0, 10);
       const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
 
+      // Se asegura el uso de '|' como delimitador entre columnas y salto de línea final
       contenido += `${numLinea}|${est}|${isv}|${esp}|${pais1}|${pais2}|${fch}|${nroPallet}|${cjs}\r\n`;
     });
 
