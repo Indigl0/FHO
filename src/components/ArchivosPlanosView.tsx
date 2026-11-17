@@ -10,8 +10,8 @@ interface PalletItem {
 export default function ArchivosPlanosView() {
   const [tipoFormato, setTipoFormato] = useState<'INS' | 'DES'>('INS');
   const [nSolicitud, setNSolicitud] = useState('');
-  const [codigoEspecie] = useState('10314200'); // Fijo por regla SAG
-  const [establecimiento] = useState('0984'); // Fijo por regla SAG
+  const [codigoEspecie] = useState('10314200'); // Fijo por regla SAG (8 dígitos)
+  const [establecimiento] = useState('0984'); // Fijo por regla SAG (4 dígitos)
   
   const [codigoPais1, setCodigoPais1] = useState('520');
   const [codigoPais2, setCodigoPais2] = useState('000');
@@ -64,7 +64,7 @@ export default function ArchivosPlanosView() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
       return;
     }
-    if (!codigoPais2.trim() || codigoPais2.length !== 3) {
+    if (tipoFormato === 'INS' && (!codigoPais2.trim() || codigoPais2.length !== 3)) {
       setErrorMsg('El Código País Destino (2) debe tener exactamente 3 dígitos.');
       setInvalidField('pais2');
       window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -94,28 +94,45 @@ export default function ArchivosPlanosView() {
     }
 
     const lineas: string[] = [];
-
-    // 1. Línea de Encabezado
     const totalPalletsStr = String(pallets.length).padStart(4, '0');
-    const cabecera = `0001${establecimiento}${nSolicitud.padStart(5, '0')}${codigoEspecie}${codigoPais1}${codigoPais2}${fecha}${totalPalletsStr}`;
-    lineas.push(cabecera);
 
-    // 2. Líneas de Detalle por Pallet
-    pallets.forEach((p) => {
-      const nroPallet = String(p.nPallet || '').padStart(10, '0');
-      const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
-      const lineaDetalle = `${nroPallet}${cjs}`;
-      lineas.push(lineaDetalle);
-    });
+    if (tipoFormato === 'INS') {
+      const isv5 = nSolicitud.padStart(5, '0');
+      const estab4 = establecimiento.padStart(4, '0');
+      const esp8 = codigoEspecie.padStart(8, '0');
+      const p1_3 = codigoPais1.padStart(3, '0');
+      const p2_3 = codigoPais2.padStart(3, '0');
+      const fch8 = fecha.padStart(8, '0');
 
-    // 3. Línea de Cierre estándar
+      lineas.push(`${isv5}${estab4}${esp8}${p1_3}${p2_3}${fch8}${totalPalletsStr}`);
+
+      pallets.forEach((p) => {
+        const folio10 = String(p.nPallet || '').padStart(10, '0');
+        const cajas4 = String(p.cantidadCajas || 0).padStart(4, '0');
+        lineas.push(`${folio10}${cajas4}`);
+      });
+
+    } else {
+      const estab4 = establecimiento.padStart(4, '0');
+      const p1_3 = codigoPais1.padStart(3, '0');
+      const fch8 = fecha.padStart(8, '0');
+
+      lineas.push(`${estab4}${p1_3}${fch8}${totalPalletsStr}`);
+
+      const esp8 = codigoEspecie.padStart(8, '0');
+      pallets.forEach((p) => {
+        const folio10 = String(p.nPallet || '').padStart(10, '0');
+        const cajas4 = String(p.cantidadCajas || 0).padStart(4, '0');
+        lineas.push(`${folio10}${cajas4}${esp8}`);
+      });
+    }
+
     lineas.push('&&');
 
     const contenidoFinal = lineas.join('\r\n') + '\r\n';
 
-    // Descarga del archivo con extensión en MAYÚSCULAS (.INS / .DES)
     const extension = tipoFormato.toUpperCase();
-    const nombreArchivo = `SAG_${nSolicitud}_${tipoFormato}.${extension}`;
+    const nombreArchivo = `${establecimiento}${nSolicitud.padStart(5, '0')}.${extension}`;
     
     const blob = new Blob([contenidoFinal], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
@@ -127,8 +144,8 @@ export default function ArchivosPlanosView() {
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
 
-    setSuccessMsg(`¡Archivo ${nombreArchivo} generado y descargado con éxito!`);
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setSuccessMsg(`¡Archivo ${nombreArchivo} generado y descargado con éxito con formato estricto SAG!`);
+    window.scrollTo({ top: 0, behavior: 'smooth' }); // Corregido aquí
     setTimeout(() => setSuccessMsg(''), 5000);
   };
 
@@ -136,13 +153,13 @@ export default function ArchivosPlanosView() {
     <div className="space-y-6 max-w-5xl mx-auto pb-10">
       <div className="flex flex-col items-center justify-center text-center space-y-1.5 py-4 border-b border-gray-200">
         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
-          <FileText className="h-3.5 w-3.5" /> Módulo de Cumplimiento SAG
+          <FileText className="h-3.5 w-3.5" /> Módulo de Cumplimiento SAG (Norma D-PA-EA-021)
         </div>
         <h2 className="text-2xl font-black tracking-tight text-slate-900">
           Generador de Archivos Planos SAG
         </h2>
         <p className="text-xs font-medium text-slate-500 max-w-lg">
-          Confección y validación de archivos normativos (D-PA-EA-021) para Inspección, Reinspección y Fumigación.
+          Confección de archivos de ancho fijo sin delimitadores para Inspección y Despacho.
         </p>
       </div>
 
@@ -185,11 +202,13 @@ export default function ArchivosPlanosView() {
             <input type="text" value={establecimiento} disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed" />
           </div>
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Solicitud / ISV (5 dígitos) *</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+              {tipoFormato === 'INS' ? 'N° Solicitud / SIF (5 dígitos) *' : 'N° Planilla Despacho (5 dígitos) *'}
+            </label>
             <input
               type="text"
               maxLength={5}
-              placeholder="Ej: 31000"
+              placeholder="Ej: 00001"
               value={nSolicitud}
               onChange={(e) => setNSolicitud(e.target.value)}
               className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${invalidField === 'nSolicitud' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
@@ -212,16 +231,23 @@ export default function ArchivosPlanosView() {
               className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais1' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
             />
           </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
-            <input
-              type="text"
-              maxLength={3}
-              value={codigoPais2}
-              onChange={(e) => setCodigoPais2(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais2' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
-            />
-          </div>
+          {tipoFormato === 'INS' ? (
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
+              <input
+                type="text"
+                maxLength={3}
+                value={codigoPais2}
+                onChange={(e) => setCodigoPais2(e.target.value)}
+                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais2' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
+              />
+            </div>
+          ) : (
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2)</label>
+              <input type="text" value="No aplica en DES" disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-400 cursor-not-allowed" />
+            </div>
+          )}
           <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD) *</label>
             <input
@@ -255,7 +281,7 @@ export default function ArchivosPlanosView() {
               <div key={p.id} className="flex items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
                 <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
                 <div className="flex-1">
-                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet *</label>
+                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (10 dígitos) *</label>
                   <input
                     type="text"
                     maxLength={10}
