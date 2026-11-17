@@ -93,29 +93,27 @@ export default function ArchivosPlanosView() {
       }
     }
 
-    // Construcción estricta de líneas separadas por pipe (|) y salto de línea Windows (\r\n)
     const lineas: string[] = [];
-    
-    pallets.forEach((p, index) => {
-      const numLinea = String(index + 1).padStart(3, '0');
-      const est = establecimiento.padEnd(4, '0');
-      const isv = nSolicitud.padStart(5, '0');
-      const esp = codigoEspecie.padEnd(8, '0');
-      const pais1 = codigoPais1.padEnd(3, '0');
-      const pais2 = codigoPais2.padEnd(3, '0');
-      const fch = fecha.padEnd(8, '0');
-      const nroPallet = String(p.nPallet || '').padStart(10, '0'); // Asegura ceros a la izquierda si es folio numérico
-      const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
 
-      // Estructura exacta requerida con pipes
-      const lineaFormateada = `${numLinea}|${est}|${isv}|${esp}|${pais1}|${pais2}|${fch}|${nroPallet}|${cjs}`;
-      lineas.push(lineaFormateada);
+    // 1. Línea de Encabezado (según referencia: 0001 + establecimiento + isv + especie + pais1 + pais2 + fecha + total pallets)
+    const totalPalletsStr = String(pallets.length).padStart(4, '0');
+    const cabecera = `0001${establecimiento}${nSolicitud.padStart(5, '0')}${codigoEspecie}${codigoPais1}${codigoPais2}${fecha}${totalPalletsStr}`;
+    lineas.push(cabecera);
+
+    // 2. Líneas de Detalle por Pallet (según referencia: folio de pallet + cantidad de cajas)
+    pallets.forEach((p) => {
+      const nroPallet = String(p.nPallet || '').padStart(10, '0');
+      const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
+      const lineaDetalle = `${nroPallet}${cjs}`;
+      lineas.push(lineaDetalle);
     });
 
-    // Unimos con \r\n explícito para formato de texto de Windows
+    // 3. Línea de Cierre estándar
+    lineas.push('&&');
+
     const contenidoFinal = lineas.join('\r\n') + '\r\n';
 
-    // Descarga forzada como texto plano puro
+    // Descarga del archivo
     const extension = tipoFormato.toLowerCase();
     const nombreArchivo = `SAG_${nSolicitud}_${tipoFormato}.${extension}`;
     
