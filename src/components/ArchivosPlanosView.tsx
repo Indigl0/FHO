@@ -95,12 +95,12 @@ export default function ArchivosPlanosView() {
 
     const lineas: string[] = [];
 
-    // 1. Línea de Encabezado (según referencia: 0001 + establecimiento + isv + especie + pais1 + pais2 + fecha + total pallets)
+    // 1. Línea de Encabezado
     const totalPalletsStr = String(pallets.length).padStart(4, '0');
     const cabecera = `0001${establecimiento}${nSolicitud.padStart(5, '0')}${codigoEspecie}${codigoPais1}${codigoPais2}${fecha}${totalPalletsStr}`;
     lineas.push(cabecera);
 
-    // 2. Líneas de Detalle por Pallet (según referencia: folio de pallet + cantidad de cajas)
+    // 2. Líneas de Detalle por Pallet
     pallets.forEach((p) => {
       const nroPallet = String(p.nPallet || '').padStart(10, '0');
       const cjs = String(p.cantidadCajas || 0).padStart(5, '0');
@@ -113,8 +113,8 @@ export default function ArchivosPlanosView() {
 
     const contenidoFinal = lineas.join('\r\n') + '\r\n';
 
-    // Descarga del archivo
-    const extension = tipoFormato.toLowerCase();
+    // Descarga del archivo con extensión en MAYÚSCULAS (.INS / .DES)
+    const extension = tipoFormato.toUpperCase();
     const nombreArchivo = `SAG_${nSolicitud}_${tipoFormato}.${extension}`;
     
     const blob = new Blob([contenidoFinal], { type: 'text/plain;charset=utf-8' });
