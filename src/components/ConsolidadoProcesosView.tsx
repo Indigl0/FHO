@@ -92,6 +92,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th>Variedad</th>
               <th>Procesado</th>
               <th style="background-color: #059669; color: white;">Embalado kg</th>
+              <th style="background-color: #e11d48; color: white;">Merma kg</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,6 kg (cajas)</th>
               <th style="background-color: #d97706; color: white;">% Exportación</th>
@@ -118,6 +119,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="text bold">${r.variedad || ''}</td>
                   <td class="num">${procKg}</td>
                   <td class="num bold" style="background-color: #ecfdf5; color: #065f46;">${c.embaladoKg}</td>
+                  <td class="num" style="background-color: #fff1f2; color: #9f1239;">${num(r.mermaKg)}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
                   <td class="num bold" style="background-color: #fef3c7; color: #b45309;">${pctExp.toFixed(1)}%</td>
@@ -331,6 +333,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th className={`${thCompactCls} text-center`}>Procesado</th>
 
               <th className="px-2 py-2.5 font-semibold text-emerald-900 whitespace-nowrap text-[11px] bg-emerald-50 border-r border-emerald-200 text-center">Embalado kg</th>
+              <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-center">Merma kg</th>
               
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,6 kg</th>
@@ -342,7 +345,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={14} className="py-12 text-center text-gray-400">
+                <td colSpan={15} className="py-12 text-center text-gray-400">
                   No hay registros disponibles para mostrar en el consolidado.
                 </td>
               </tr>
@@ -372,6 +375,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                     <td className={tdNum}>{fmtKg(procKg)}</td>
                     
                     <td className={`${tdNum} font-medium text-emerald-800 bg-emerald-50/25`}>{fmtKg(c.embaladoKg)}</td>
+                    <td className={`${tdNum} font-medium text-rose-800 bg-rose-50/25`}>{fmtKg(num(r.mermaKg))}</td>
                     
                     <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
                       {fmtBoxes(cajas3)}
