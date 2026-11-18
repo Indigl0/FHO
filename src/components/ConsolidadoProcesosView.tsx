@@ -94,7 +94,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th style="background-color: #059669; color: white;">Embalado kg</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,6 kg (cajas)</th>
-              <th>Merma kg</th>
+              <th style="background-color: #d97706; color: white;">% Exportación</th>
               <th>Observaciones</th>
             </tr>
           </thead>
@@ -104,6 +104,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               const procKg = num(r.procesadoKg);
               const cajas3 = getBoxCountByWeight(r, 3.0);
               const cajas36 = getBoxCountByWeight(r, 3.6);
+              const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
               return `
                 <tr>
                   <td class="text bold">${r.productor || ''}</td>
@@ -119,7 +120,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="num bold" style="background-color: #ecfdf5; color: #065f46;">${c.embaladoKg}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="num" style="background-color: #fff1f2; color: #9f1239;">${num(r.mermaKg)}</td>
+                  <td class="num bold" style="background-color: #fef3c7; color: #b45309;">${pctExp.toFixed(1)}%</td>
                   <td class="text">${r.observaciones || ''}</td>
                 </tr>
               `;
@@ -334,7 +335,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,6 kg</th>
 
-              <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-center">Merma kg</th>
+              <th className="px-2 py-2.5 font-semibold text-amber-900 whitespace-nowrap text-[11px] bg-amber-50 border-r border-amber-200 text-center">% Exportación</th>
               <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
             </tr>
           </thead>
@@ -351,6 +352,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                 const procKg = num(r.procesadoKg);
                 const cajas3 = getBoxCountByWeight(r, 3.0);
                 const cajas36 = getBoxCountByWeight(r, 3.6);
+                const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
 
                 return (
                   <tr key={r.id} className={`border-b border-gray-100 hover:bg-gray-50/50 ${idx % 2 === 1 ? 'bg-gray-50/30' : ''}`}>
@@ -379,7 +381,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                       {fmtBoxes(cajas36)}
                     </td>
 
-                    <td className={`${tdNum} font-medium text-rose-800 bg-rose-50/25`}>{fmtKg(num(r.mermaKg))}</td>
+                    <td className={`${tdNum} font-bold text-amber-800 bg-amber-50/25`}>{pctExp.toFixed(1)}%</td>
                     
                     <td className={`${tdCls} text-slate-600 max-w-[180px] truncate relative group cursor-pointer`}>
                       {r.observaciones ? (
