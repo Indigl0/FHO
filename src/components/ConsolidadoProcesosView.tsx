@@ -212,20 +212,20 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
-            <div className="px-1 flex flex-col justify-between">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center items-start">
+            <div className="px-1 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalRecepcion)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-            <div className="px-2 flex flex-col justify-between">
+            <div className="px-2 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalProcesado)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
               </p>
             </div>
-            <div className="pl-2 flex flex-col justify-between">
+            <div className="pl-2 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {globalPctExportacion.toFixed(1)}<span className="text-lg sm:text-2xl font-bold text-orange-100">%</span>
@@ -261,28 +261,28 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
-            <div className="px-1 flex flex-col justify-between">
+          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center items-start">
+            <div className="px-1 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtKg(totalEmbalado)} <span className="text-xs sm:text-sm font-bold text-emerald-100">Kg</span>
               </p>
             </div>
-            <div className="px-2 flex flex-col justify-between items-center">
+            <div className="px-2 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas3)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
-              <span className="mt-2 text-xs sm:text-sm font-extrabold text-white bg-black/20 border border-white/25 rounded-full px-3 py-0.5">
+              <span className="mt-1 text-[11px] sm:text-xs font-semibold text-emerald-50/90">
                 {fmtPallets(palletsBulk3)}
               </span>
             </div>
-            <div className="pl-2 flex flex-col justify-between items-center">
+            <div className="pl-2 flex flex-col items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
-              <span className="mt-2 text-xs sm:text-sm font-extrabold text-white bg-black/20 border border-white/25 rounded-full px-3 py-0.5">
+              <span className="mt-1 text-[11px] sm:text-xs font-semibold text-emerald-50/90">
                 {fmtPallets(palletsBulk36)}
               </span>
             </div>
