@@ -103,7 +103,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th style="background-color: #059669; color: white;">Embalado kg</th>
               <th style="background-color: #e11d48; color: white;">Merma kg</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
-              <th style="background-color: #0284c7; color: white;">Bulk 3,6 kg (cajas)</th>
+              <th style="background-color: #0284c7; color: white;">Rejillas 3,6 kg (cajas)</th>
               <th style="background-color: #d97706; color: white;">% Exportación</th>
               <th>Observaciones</th>
             </tr>
@@ -278,7 +278,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               </span>
             </div>
             <div className="pl-2 flex flex-col items-center">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Rejillas 3,6 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
@@ -354,7 +354,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th className="px-2 py-2.5 font-extrabold text-rose-950 whitespace-nowrap text-[11px] bg-rose-200 border-r border-rose-300 text-center">Merma kg</th>
               
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
-              <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,6 kg</th>
+              <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Rejillas 3,6 kg</th>
 
               <th className="px-2 py-2.5 font-extrabold text-amber-950 whitespace-nowrap text-[11px] bg-amber-200 border-r border-amber-300 text-center">% Exportación</th>
               <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
