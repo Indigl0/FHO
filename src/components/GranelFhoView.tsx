@@ -31,8 +31,8 @@ export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh })
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState<ProcessRecord | null>(null);
   const [search, setSearch] = useState('');
-  const [sortKey, setSortKey] = useState<'fecha' | 'proceso' | 'mes'>('fecha');
-  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('desc');
+  const [sortKey, setSortKey] = useState<'none' | 'fecha' | 'proceso' | 'mes'>('none');
+  const [sortDir, setSortDir] = useState<'asc' | 'desc'>('asc');
   const [, setSubmitting] = useState(false);
   const [extraVariedades, setExtraVariedades] = useLocalStorage<string[]>(
     'granel-variedades-extra',
@@ -61,21 +61,9 @@ export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh })
       );
     })
     .sort((a, b) => {
+      if (sortKey === 'none') return 0;
       let cmp = 0;
-      if (sortKey === 'fecha') {
-        cmp = (a.fechaRecepcion || '').localeCompare(b.fechaRecepcion || '');
-        if (cmp === 0) {
-          cmp = (a.fechaProduccion || '').localeCompare(b.fechaProduccion || '');
-        }
-        if (cmp === 0) {
-          const guiaA = Number(String(a.guiaRecepcion || '').replace(/\D/g, '') || 0);
-          const guiaB = Number(String(b.guiaRecepcion || '').replace(/\D/g, '') || 0);
-          cmp = guiaA - guiaB;
-        }
-        if (cmp === 0) {
-          cmp = Number(a.nProceso || 0) - Number(b.nProceso || 0);
-        }
-      }
+      if (sortKey === 'fecha') cmp = (a.fechaRecepcion || '').localeCompare(b.fechaRecepcion || '');
       if (sortKey === 'proceso') cmp = Number(a.nProceso || 0) - Number(b.nProceso || 0);
       if (sortKey === 'mes') cmp = a.mesProduccion.localeCompare(b.mesProduccion);
       return sortDir === 'asc' ? cmp : -cmp;
@@ -158,12 +146,12 @@ export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh })
     }
   };
 
-  const toggleSort = (key: typeof sortKey) => {
+  const toggleSort = (key: Exclude<typeof sortKey, 'none'>) => {
     if (sortKey === key) {
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir('desc');
+      setSortDir('asc');
     }
   };
 
