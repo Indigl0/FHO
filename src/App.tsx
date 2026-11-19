@@ -16,7 +16,7 @@ const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl', 'jgonzalez@h
 const CALCULATOR_ONLY_EMAILS: string[] = ['fho@gmail.com'];
 
 export function App() {
-  const [view, setView] = useState<ViewKey | 'calculadora'>('granel');
+  const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -56,11 +56,14 @@ export function App() {
           setView('calculadora');
         } else {
           setUserRole('admin');
-          setView('granel');
+          setView('consolidado');
         }
+      } else {
+        setView('consolidado');
       }
     }).catch((err) => {
       console.warn('No se pudo verificar la sesión inicial por red:', err);
+      setView('consolidado');
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_, session) => {
@@ -79,7 +82,7 @@ export function App() {
       } else {
         setUserRole('viewer');
         setUserEmail(null);
-        setView('granel');
+        setView('consolidado');
       }
     });
 
@@ -159,7 +162,7 @@ export function App() {
         setView('calculadora');
       } else {
         setUserRole('admin');
-        setView('granel');
+        setView('consolidado');
       }
     } catch (err: any) {
       setErrorMsg(err.message || 'Correo o contraseña incorrectos');
@@ -170,7 +173,7 @@ export function App() {
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
-    setView('granel');
+    setView('consolidado');
   };
 
   if (loading) {
