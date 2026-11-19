@@ -62,7 +62,20 @@ export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh })
     })
     .sort((a, b) => {
       let cmp = 0;
-      if (sortKey === 'fecha') cmp = a.fechaRecepcion.localeCompare(b.fechaRecepcion);
+      if (sortKey === 'fecha') {
+        cmp = (a.fechaRecepcion || '').localeCompare(b.fechaRecepcion || '');
+        if (cmp === 0) {
+          cmp = (a.fechaProduccion || '').localeCompare(b.fechaProduccion || '');
+        }
+        if (cmp === 0) {
+          const guiaA = Number(String(a.guiaRecepcion || '').replace(/\D/g, '') || 0);
+          const guiaB = Number(String(b.guiaRecepcion || '').replace(/\D/g, '') || 0);
+          cmp = guiaA - guiaB;
+        }
+        if (cmp === 0) {
+          cmp = Number(a.nProceso || 0) - Number(b.nProceso || 0);
+        }
+      }
       if (sortKey === 'proceso') cmp = Number(a.nProceso || 0) - Number(b.nProceso || 0);
       if (sortKey === 'mes') cmp = a.mesProduccion.localeCompare(b.mesProduccion);
       return sortDir === 'asc' ? cmp : -cmp;
@@ -150,7 +163,7 @@ export const GranelFhoView: React.FC<Props> = ({ records, userRole, onRefresh })
       setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
     } else {
       setSortKey(key);
-      setSortDir('asc');
+      setSortDir('desc');
     }
   };
 
