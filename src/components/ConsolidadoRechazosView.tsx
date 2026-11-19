@@ -1,51 +1,95 @@
-import React, { useState } from 'react';
-import { Download, Search, BarChart2, MessageSquare, Package } from 'lucide-react';
-import type { ProcessRecord } from '../types';
-import { computeRecord, num, getBoxCountByWeight } from '../utils/calculations';
+import React, { useState, useEffect } from 'react';
+import { Search, Download, BarChart4, Package, Layers, Info, ChevronDown, ChevronUp } from 'lucide-react';
+import { supabase } from '../utils/supabase';
 
-interface Props {
-  records: ProcessRecord[];
-}
+const GUIA_EMBALAJES_PROCESOS = [
+  { embalaje: '8 X 18 B/F', proceso: 'Fumigación' },
+  { embalaje: '12 X 6 OZ B/F', proceso: 'Fumigación' },
+  { embalaje: '12 X 18 B/F', proceso: 'Fumigación' },
+  { embalaje: '8 X 18 BF CONVENCIONAL', proceso: 'Fumigación' },
+  { embalaje: '12 X 6 OZ B/F', proceso: 'Fumigación' },
+  { embalaje: '8 X 18 S/E', proceso: 'Fumigación' },
+  { embalaje: '8 x 18 OZ ORGÁNICO S/E', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '12 X 6 OZ S/E ORGÁNICO', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '12 x 1 PINTA PLANO S/E ORGÁNICO', proceso: 'Cambio etiqueta / convencional / FUM' },
+  { embalaje: '8 X 18 STO ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 X 6 STO ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 X 6 BF ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+  { embalaje: '12 x 1 PINTA BF ORGÁNICO', proceso: 'Re- embalaje 3,6 orgánico' },
+];
 
-function fmtKg(n: number): string {
-  return n.toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
-}
+export const ConsolidadoRechazosView: React.FC = () => {
+  const [rechazos, setRechazos] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showGuia, setShowGuia] = useState(false);
 
-function fmtBoxes(n: number): string {
-  return n.toLocaleString('es-CL', { maximumFractionDigits: 0 });
-}
+  useEffect(() => {
+    fetchRechazos();
 
-function formatDate(dateStr?: string): string {
-  if (!dateStr) return '—';
-  const parts = dateStr.split('-');
-  if (parts.length === 3) {
-    const [year, month, day] = parts;
-    return `${day}-${month}-${year}`;
-  }
-  return dateStr;
-}
+    const channel = supabase
+      .channel('public:rechazos_records_public')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'rechazos_records' },
+        () => {
+          fetchRechazos();
+        }
+      )
+      .subscribe();
 
-const thCompactCls = 'px-2 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-center';
-const thCompactLeft = 'px-2.5 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-left';
-const tdCls = 'px-2 py-2 text-gray-700 whitespace-nowrap text-[11px] border-r border-slate-100';
-const tdNum = 'px-2 py-2 text-right text-gray-700 whitespace-nowrap tabular-nums text-[11px] border-r border-slate-100';
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
 
-export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
-  const [search, setSearch] = useState('');
+  const fetchRechazos = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('rechazos_records')
+        .select('*')
+        .order('numero', { ascending: true });
 
-  const filtered = records.filter((r) => {
-    const s = search.toLowerCase();
-    return (
-      r.mesProduccion.toLowerCase().includes(s) ||
-      r.mesRecepcion.toLowerCase().includes(s) ||
-      r.productor.toLowerCase().includes(s) ||
-      r.variedad.toLowerCase().includes(s) ||
-      r.semana.toLowerCase().includes(s) ||
-      String(r.nProceso).includes(s) ||
-      String(r.guiaRecepcion || '').toLowerCase().includes(s) ||
-      String(r.observaciones || '').toLowerCase().includes(s)
-    );
-  });
+      if (error) throw error;
+
+      const formatted = (data || []).map((r: any) => ({
+        id: r.id,
+        fecha: r.fecha || '',
+        numero: r.numero || 1,
+        lote: r.lote || '',
+        productor: r.productor || '',
+        tipoRechazo: r.tipo_rechazo || '',
+        folio: r.folio || '',
+        opInicial: r.op_inicial || '',
+        embalaje: r.embalaje || '',
+        fechaEmbalaje: r.fecha_embalaje || '',
+        procesoFho: r.proceso_fho || '',
+        nRecillasFho: r.n_recillas_fho !== null && r.n_recillas_fho !== undefined && r.n_recillas_fho !== 0 ? Number(r.n_recillas_fho) : '',
+        nRecillasAcopio: r.n_recillas_acopio !== null && r.n_recillas_acopio !== undefined && r.n_recillas_acopio !== 0 ? Number(r.n_recillas_acopio) : '',
+        opFinal: r.op_final || '',
+        nContenedor: r.n_contenedor || '',
+        estado: r.estado || 'EXPORTADO',
+        observaciones: r.observaciones || '',
+      }));
+
+      setRechazos(formatted);
+    } catch (err) {
+      console.error('Error al cargar rechazos públicos:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredRechazos = rechazos.filter((item) =>
+    Object.values(item).some((val) =>
+      String(val).toLowerCase().includes(searchTerm.toLowerCase())
+    )
+  );
+
+  const totalReembalajesCount = rechazos.filter(r => String(r.procesoFho).toUpperCase().includes('REEMBALAJE') || (Number(r.nRecillasFho) > 0 || Number(r.nRecillasAcopio) > 0)).length;
+  const totalRecillasFhoSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasFho) || 0), 0);
+  const totalRecillasAcopioSum = rechazos.reduce((acc, r) => acc + (Number(r.nRecillasAcopio) || 0), 0);
+  const totalRecillasGeneral = totalRecillasFhoSum + totalRecillasAcopioSum;
 
   const exportExcelPro = () => {
     const htmlTable = `
@@ -57,7 +101,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
          <x:ExcelWorkbook>
           <x:ExcelWorksheets>
            <x:ExcelWorksheet>
-            <x:Name>Consolidado Procesos</x:Name>
+            <x:Name>Consolidado Rechazos ASQUE</x:Name>
             <x:WorksheetOptions>
              <x:DisplayGridlines/>
             </x:WorksheetOptions>
@@ -70,8 +114,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; width: 100%; }
           th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 8px 10px; text-align: center; vertical-align: middle; }
           td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: middle; color: #334155; }
-          .num { text-align: right; mso-number-format:"#,##0.0"; }
-          .boxes { text-align: right; mso-number-format:"#,##0"; }
+          .num { text-align: right; mso-number-format:"#,##0"; }
           .text { text-align: left; }
           .center { text-align: center; }
           .bold { font-weight: bold; }
@@ -81,49 +124,47 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
         <table>
           <thead>
             <tr>
+              <th>N°</th>
+              <th>Fecha</th>
+              <th>Lote</th>
               <th>Productor</th>
-              <th>Mes P.</th>
-              <th>Semana</th>
-              <th>F. Recep.</th>
-              <th>F. Prod.</th>
-              <th>N° Proc.</th>
-              <th style="background-color: #0284c7; color: white;">N° Guía</th>
-              <th>Recep. kg</th>
-              <th>Variedad</th>
-              <th>Procesado</th>
-              <th style="background-color: #059669; color: white;">Embalado kg</th>
-              <th style="background-color: #e11d48; color: white;">Merma kg</th>
-              <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
-              <th style="background-color: #0284c7; color: white;">Bulk 3,6 kg (cajas)</th>
-              <th style="background-color: #d97706; color: white;">% Exportación</th>
+              <th>T. Rechazo</th>
+              <th>Folio</th>
+              <th>OP Inc</th>
+              <th>Embalaje</th>
+              <th>F. Embalaje</th>
+              <th>Proceso</th>
+              <th>N° Recillas FHO</th>
+              <th>N° Recillas Acopio</th>
+              <th>Total Recillas</th>
+              <th>OP Final</th>
+              <th>Contenedor</th>
+              <th>Estado</th>
               <th>Observaciones</th>
             </tr>
           </thead>
           <tbody>
-            ${filtered.map((r: any) => {
-              const c = computeRecord(r);
-              const procKg = num(r.procesadoKg);
-              const cajas3 = getBoxCountByWeight(r, 3.0);
-              const cajas36 = getBoxCountByWeight(r, 3.6);
-              const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
+            ${filteredRechazos.map((item: any) => {
+              const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
               return `
                 <tr>
-                  <td class="text bold">${r.productor || ''}</td>
-                  <td class="text">${r.mesProduccion || ''}</td>
-                  <td class="center bold">${r.semana || ''}</td>
-                  <td class="center">${formatDate(r.fechaRecepcion)}</td>
-                  <td class="center">${formatDate(r.fechaProduccion)}</td>
-                  <td class="center">${r.nProceso || ''}</td>
-                  <td class="center bold" style="background-color: #bae6fd; color: #0c4a6e;">${r.guiaRecepcion || '—'}</td>
-                  <td class="num">${num(r.recepcionKg)}</td>
-                  <td class="text bold">${r.variedad || ''}</td>
-                  <td class="num">${procKg}</td>
-                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${c.embaladoKg}</td>
-                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${num(r.mermaKg)}</td>
-                  <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
-                  <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="num bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
-                  <td class="text">${r.observaciones || ''}</td>
+                  <td class="center bold">${item.numero}</td>
+                  <td class="center">${item.fecha}</td>
+                  <td class="center">${item.lote}</td>
+                  <td class="text bold">${item.productor}</td>
+                  <td class="center">${item.tipoRechazo}</td>
+                  <td class="center">${item.folio}</td>
+                  <td class="center">${item.opInicial}</td>
+                  <td class="center">${item.embalaje}</td>
+                  <td class="center">${item.fechaEmbalaje}</td>
+                  <td class="center bold" style="background-color: #e0f2fe; color: #0369a1;">${item.procesoFho}</td>
+                  <td class="num">${item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
+                  <td class="num">${item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
+                  <td class="num bold" style="background-color: #bae6fd; color: #0c4a6e;">${totalRec > 0 ? totalRec : '-'}</td>
+                  <td class="center">${item.opFinal}</td>
+                  <td class="center" style="mso-number-format:\@;">${item.nContenedor}</td>
+                  <td class="center bold">${item.estado}</td>
+                  <td class="text">${item.observaciones}</td>
                 </tr>
               `;
             }).join('')}
@@ -137,279 +178,255 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = 'Consolidado_Arandanos_Pro.xls';
+    a.download = 'Consolidado_Rechazos_ASQUE_Completo.xls';
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
   };
 
-  // Cálculos de Totales Generales
-  const totalRecepcion = filtered.reduce((s, r) => s + num(r.recepcionKg), 0);
-  const totalProcesado = filtered.reduce((s, r) => s + num(r.procesadoKg), 0);
-  const totalEmbalado = filtered.reduce((s, r) => s + computeRecord(r).embaladoKg, 0);
-  const globalPctExportacion = totalProcesado > 0 ? (totalEmbalado / totalProcesado) * 100 : 0;
-
-  const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
-  const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
-
-  const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
-    const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
-    if (!acc[mes]) {
-      acc[mes] = { recep: 0, proc: 0 };
-    }
-    acc[mes].recep += num(r.recepcionKg);
-    acc[mes].proc += num(r.procesadoKg);
-    return acc;
-  }, {});
-
-  const monthlyProductionStats = filtered.reduce((acc: Record<string, { embalado: number; cajas3: number; cajas36: number }>, r) => {
-    const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
-    if (!acc[mes]) {
-      acc[mes] = { embalado: 0, cajas3: 0, cajas36: 0 };
-    }
-    acc[mes].embalado += computeRecord(r).embaladoKg;
-    acc[mes].cajas3 += getBoxCountByWeight(r, 3.0);
-    acc[mes].cajas36 += getBoxCountByWeight(r, 3.6);
-    return acc;
-  }, {});
+  if (loading) {
+    return (
+      <div className="flex h-96 w-full items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-blue-600 border-t-transparent" />
+          <p className="text-xs font-medium text-gray-500">Cargando consolidado de rechazos...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="space-y-6 w-full max-w-full px-2 sm:px-0">
-      {/* Título Principal */}
+    <div className="space-y-6 w-full max-w-full">
+      {/* Título de la Vista */}
       <div className="flex flex-col items-center justify-center text-center space-y-1.5 py-4 border-b border-gray-200/85 mb-2">
         <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-100 text-blue-700 px-3.5 py-1 rounded-full text-xs font-bold uppercase tracking-wider shadow-sm">
-          <BarChart2 className="h-3.5 w-3.5" /> Monitoreo y Cuadratura en Línea
+          <BarChart4 className="h-3.5 w-3.5" /> Monitoreo y Cuadratura en Línea
         </div>
         <h2 className="text-xl sm:text-2xl lg:text-3xl font-black tracking-tight text-slate-900">
-          Monitoreo de Fruta a Granel FHO
+          Consolidado Rechazos ASQUE
         </h2>
         <p className="text-xs sm:text-sm font-medium text-slate-500 max-w-xl px-4">
-          Panel oficial de control y seguimiento en línea de recepciones, rendimientos de embalado y exportación de arándanos.
+          Seguimiento público en tiempo real de los registros de rechazos, reembalajes y cuadratura de recillas.
         </p>
       </div>
 
       {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         
-        {/* Recuadro 1: Naranja */}
+        {/* Recuadro 1: Naranja (Resumen General de Rechazos) */}
         <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-orange-100 flex items-center gap-2">
-              <BarChart2 className="h-4 w-4 text-orange-100" /> Resumen Operativo de Procesos
+              <Layers className="h-4 w-4 text-orange-100" /> RESUMEN GENERAL DE RECHAZOS
             </span>
           </div>
 
-          <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
+          <div className="grid grid-cols-2 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
             <div className="px-1 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Recepción Total</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Total Registros</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalRecepcion)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
-              </p>
-            </div>
-            <div className="px-2 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Procesado Total</p>
-              <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalProcesado)} <span className="text-xs sm:text-sm font-bold text-orange-100">Kg</span>
+                {filteredRechazos.length} <span className="text-xs sm:text-sm font-bold text-orange-100">Reg.</span>
               </p>
             </div>
             <div className="pl-2 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">% Exportación</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-orange-100">Total Reembalajes</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {globalPctExportacion.toFixed(1)}<span className="text-lg sm:text-2xl font-bold text-orange-100">%</span>
+                {totalReembalajesCount} <span className="text-xs sm:text-sm font-bold text-orange-100">Oper.</span>
               </p>
             </div>
           </div>
-
-          {Object.keys(monthlyStats).length > 0 && (
-            <div className="border-t border-white/40 pt-4 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-orange-100 text-center mb-3">
-                📊 Totales por Mes de Producción
-              </p>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {Object.entries(monthlyStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-white/20 text-xs text-orange-100 shadow-sm">
-                    <span className="font-extrabold uppercase text-white tracking-wide text-sm">{mes}</span>
-                    <div className="flex gap-4 text-xs">
-                      <span>Recep: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.recep)} kg</strong></span>
-                      <span>Proc: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.proc)} kg</strong></span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* Recuadro 2: Verde */}
+        {/* Recuadro 2: Verde (Detalle de Reembalajes) */}
         <div className="relative overflow-hidden rounded-3xl bg-[#27ae60] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
             <span className="text-xs font-bold uppercase tracking-wider text-emerald-100 flex items-center gap-2">
-              <Package className="h-4 w-4 text-emerald-100" /> Producción Terminada y Cajas
+              <Package className="h-4 w-4 text-emerald-100" /> DETALLE DE REEMBALAJES
             </span>
           </div>
 
           <div className="grid grid-cols-3 gap-2 sm:gap-4 divide-x-2 divide-white/40 text-center">
             <div className="px-1 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Embalado Total</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Rejillas FHO</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {fmtKg(totalEmbalado)} <span className="text-xs sm:text-sm font-bold text-emerald-100">Kg</span>
+                {totalRecillasFhoSum.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
               </p>
             </div>
             <div className="px-2 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Rejillas Acopio</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {fmtBoxes(totalCajas3)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
+                {totalRecillasAcopioSum.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
               </p>
             </div>
             <div className="pl-2 flex flex-col justify-between">
-              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
+              <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Total Recillas</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
-                {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
+                {totalRecillasGeneral.toLocaleString('es-CL')} <span className="text-xs sm:text-sm font-bold text-emerald-100">cjs</span>
               </p>
             </div>
           </div>
-
-          {Object.keys(monthlyProductionStats).length > 0 && (
-            <div className="border-t border-white/40 pt-4 space-y-2.5">
-              <p className="text-xs font-bold uppercase tracking-wider text-emerald-100 text-center mb-3">
-                📦 Producción y Cajas por Mes
-              </p>
-              <div className="space-y-2 max-h-48 overflow-y-auto pr-1">
-                {Object.entries(monthlyProductionStats).map(([mes, stats]) => (
-                  <div key={mes} className="bg-black/15 rounded-2xl px-4 py-3 flex flex-col sm:flex-row items-center justify-between gap-2 border border-white/20 text-xs text-emerald-100 shadow-sm">
-                    <span className="font-extrabold uppercase text-white tracking-wide text-sm">{mes}</span>
-                    <div className="flex flex-wrap justify-center gap-3 text-xs">
-                      <span>Emb: <strong className="text-white text-xs sm:text-sm ml-1">{fmtKg(stats.embalado)} kg</strong></span>
-                      <span>3.0kg: <strong className="text-white text-xs sm:text-sm ml-1">{fmtBoxes(stats.cajas3)} cjs</strong></span>
-                      <span>3.6kg: <strong className="text-white text-xs sm:text-sm ml-1">{fmtBoxes(stats.cajas36)} cjs</strong></span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
         </div>
 
       </div>
 
-      {/* Toolbar */}
-      <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-        <div className="relative flex-1 min-w-[240px]">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+      {/* GUÍA DE REFERENCIA: EMBALAJES Y PROCESOS ASQUE (ULTRA PROFESIONAL / GRID MODERNO) */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200/80 overflow-hidden transition-all">
+        <button
+          onClick={() => setShowGuia(!showGuia)}
+          className="w-full px-5 py-4 bg-gradient-to-r from-slate-50/80 via-white to-slate-50/80 hover:bg-slate-100/60 flex items-center justify-between text-left transition cursor-pointer"
+        >
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-emerald-600 text-white rounded-xl shadow-xs">
+              <Info className="w-4 h-4" />
+            </div>
+            <div>
+              <h3 className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
+                Guía de Referencia: Embalajes y Procesos ASQUE
+              </h3>
+              <p className="text-[11px] text-slate-500 font-medium">
+                Panel informativo de procesos asociados por tipo de embalaje.
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-emerald-700 bg-emerald-50/90 border border-emerald-200/70 px-3.5 py-1.5 rounded-xl shadow-2xs">
+            <span>{showGuia ? 'Ocultar cuadro' : 'Ver cuadro informativo'}</span>
+            {showGuia ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+          </div>
+        </button>
+
+        {showGuia && (
+          <div className="p-4 sm:p-5 border-t border-slate-100 bg-slate-50/50">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5">
+              {GUIA_EMBALAJES_PROCESOS.map((item, index) => (
+                <div 
+                  key={index} 
+                  className="bg-white border border-slate-200/70 rounded-xl px-4 py-3 flex items-center justify-between gap-3 shadow-2xs hover:border-emerald-300 hover:shadow-xs transition-all"
+                >
+                  <span className="text-xs sm:text-sm font-bold text-slate-800 tracking-tight">
+                    {item.embalaje}
+                  </span>
+                  <span className="text-[11px] font-semibold px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-200/60 rounded-lg text-right shrink-0">
+                    {item.proceso}
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* Barra de Búsqueda y Botón de Exportar */}
+      <div className="flex flex-col gap-4 rounded-2xl bg-white p-4 shadow-sm border border-slate-100 lg:flex-row lg:items-center lg:justify-between">
+        <div className="relative flex-1 max-w-xl">
+          <Search className="absolute left-3.5 top-3 h-4 w-4 text-slate-400" />
           <input
-            className="w-full rounded-xl border border-gray-300 py-2.5 pl-9 pr-3 text-sm outline-none transition focus:border-blue-500 bg-white shadow-sm"
-            placeholder="Buscar por productor, guía, variedad, proceso, observaciones..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            type="text"
+            placeholder="Buscar por productor, lote, folio, proceso, observaciones..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="w-full rounded-xl border border-slate-200 bg-slate-50/50 pl-10 pr-4 py-2 text-sm text-slate-800 placeholder-slate-400 outline-none transition focus:border-blue-500 focus:bg-white focus:ring-2 focus:ring-blue-100"
           />
         </div>
-        <button
-          onClick={exportExcelPro}
-          className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white transition hover:bg-emerald-700 shadow-sm w-full sm:w-auto justify-center"
-        >
-          <Download className="h-4 w-4" /> Exportar Excel Profesional (.xls)
-        </button>
+
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportExcelPro}
+            className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-4 py-2.5 text-xs font-semibold text-white shadow-md transition hover:bg-emerald-700 w-full sm:w-auto justify-center"
+          >
+            <Download className="h-4 w-4" /> Exportar Reporte Completo (.xls)
+          </button>
+        </div>
       </div>
 
-      {/* Tabla detallada optimizada */}
-      <div className="w-full overflow-x-auto rounded-xl border border-gray-200 bg-white shadow-sm">
-        <table className="w-full text-xs min-w-[900px]">
-          <thead>
-            <tr className="border-b-2 border-gray-300 text-left">
-              <th className={thCompactLeft}>Productor</th>
-              <th className={thCompactCls}>Mes P.</th>
-              <th className={thCompactCls}>Semana</th>
-              <th className={thCompactCls}>F. Recep.</th>
-              <th className={thCompactCls}>F. Prod.</th>
-              <th className={thCompactCls}>N° Proc.</th>
-              
-              <th className="px-2 py-2.5 font-extrabold text-sky-950 whitespace-nowrap text-[11px] bg-sky-200 border-r border-sky-300 text-center shadow-inner">
-                N° Guía
-              </th>
-
-              <th className={`${thCompactCls} text-center`}>Recep. kg</th>
-              <th className={thCompactLeft}>Variedad</th>
-              <th className={`${thCompactCls} text-center`}>Procesado</th>
-
-              <th className="px-2 py-2.5 font-extrabold text-emerald-950 whitespace-nowrap text-[11px] bg-emerald-200 border-r border-emerald-300 text-center">Embalado kg</th>
-              <th className="px-2 py-2.5 font-extrabold text-rose-950 whitespace-nowrap text-[11px] bg-rose-200 border-r border-rose-300 text-center">Merma kg</th>
-              
-              <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
-              <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,6 kg</th>
-
-              <th className="px-2 py-2.5 font-extrabold text-amber-950 whitespace-nowrap text-[11px] bg-amber-200 border-r border-amber-300 text-center">% Exportación</th>
-              <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={16} className="py-12 text-center text-gray-400">
-                  No hay registros disponibles para mostrar en el consolidado.
-                </td>
+      {/* Tabla detallada completa en pantalla */}
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full border-collapse text-xs">
+            <thead>
+              <tr className="bg-slate-50 text-slate-700 border-b border-slate-200 font-bold">
+                <th className="py-3.5 px-2 text-center whitespace-nowrap w-12">N°</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Fecha</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Lote</th>
+                <th className="py-3.5 px-4 text-left min-w-[200px]">Productor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">T. Rechazo</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Folio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">OP Inc</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap">F. Embalaje</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-x border-blue-200">Proceso</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas FHO</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">N° Recillas Acopio</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-200 text-blue-950 border-r border-blue-300 font-black">Total</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">OP Final</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Contenedor</th>
+                <th className="py-3.5 px-3 text-center whitespace-nowrap bg-blue-100 text-blue-900 border-r border-blue-200">Estado</th>
+                <th className="py-3.5 px-4 text-left min-w-[150px] bg-blue-100 text-blue-900">Observaciones</th>
               </tr>
-            ) : (
-              filtered.map((r: any, idx: number) => {
-                const c = computeRecord(r);
-                const procKg = num(r.procesadoKg);
-                const cajas3 = getBoxCountByWeight(r, 3.0);
-                const cajas36 = getBoxCountByWeight(r, 3.6);
-                const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
+            </thead>
+            <tbody className="divide-y divide-slate-100 text-slate-700">
+              {filteredRechazos.length > 0 ? (
+                filteredRechazos.map((item: any) => {
+                  const totalRec = (Number(item.nRecillasFho) || 0) + (Number(item.nRecillasAcopio) || 0);
+                  const isPendiente = String(item.estado || '').toUpperCase() === 'PENDIENTE';
+                  const isExportado = String(item.estado || '').toUpperCase() === 'EXPORTADO';
 
-                return (
-                  <tr key={r.id} className={`border-b border-gray-100 hover:bg-gray-50/50 ${idx % 2 === 1 ? 'bg-gray-50/30' : ''}`}>
-                    <td className={`${tdCls} font-medium text-gray-800`}>{r.productor}</td>
-                    <td className={tdCls}>{r.mesProduccion}</td>
-                    <td className={`${tdCls} font-semibold text-center`}>{r.semana}</td>
-                    <td className={tdCls}>{formatDate(r.fechaRecepcion)}</td>
-                    <td className={tdCls}>{formatDate(r.fechaProduccion)}</td>
-                    <td className={tdCls}>{r.nProceso}</td>
-                    
-                    <td className="px-2.5 py-2 font-extrabold text-sky-950 bg-sky-100 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
-                      {r.guiaRecepcion || '—'}
-                    </td>
-                    
-                    <td className={tdNum}>{fmtKg(num(r.recepcionKg))}</td>
-                    <td className={`${tdCls} font-bold text-gray-800`}>{r.variedad}</td>
-                    <td className={tdNum}>{fmtKg(procKg)}</td>
-                    
-                    <td className={`${tdNum} font-bold text-emerald-950 bg-emerald-100/80 border-r border-emerald-200`}>{fmtKg(c.embaladoKg)}</td>
-                    <td className={`${tdNum} font-bold text-rose-950 bg-rose-100/80 border-r border-rose-200`}>{fmtKg(num(r.mermaKg))}</td>
-                    
-                    <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
-                      {fmtBoxes(cajas3)}
-                    </td>
-
-                    <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
-                      {fmtBoxes(cajas36)}
-                    </td>
-
-                    <td className={`${tdNum} font-extrabold text-amber-950 bg-amber-100/80 border-r border-amber-200`}>{pctExp.toFixed(1)}%</td>
-                    
-                    <td className={`${tdCls} text-slate-600 max-w-[180px] truncate relative group cursor-pointer`}>
-                      {r.observaciones ? (
-                        <div className="flex items-center gap-1.5">
-                          <MessageSquare className="h-3 w-3 text-amber-600 shrink-0" />
-                          <span className="truncate">{r.observaciones}</span>
-                          
-                          <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-72 p-3.5 bg-slate-900 text-white text-left text-xs rounded-xl shadow-2xl border border-slate-700 leading-normal">
-                            <p className="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
-                              <MessageSquare className="h-3.5 w-3.5" /> Detalle de Observación:
-                            </p>
-                            <p className="text-slate-200 whitespace-normal break-words">{r.observaciones}</p>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })
-            )}
-          </tbody>
-        </table>
+                  return (
+                    <tr key={item.id} className="hover:bg-slate-50/80 transition">
+                      <td className="py-3 px-2 text-center font-bold text-slate-900 whitespace-nowrap">{item.numero}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.fecha}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.lote}</td>
+                      <td className="py-3 px-4 font-medium text-slate-900">{item.productor}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">
+                        {item.tipoRechazo ? (
+                          <span className="inline-block px-2.5 py-1 bg-orange-100 text-orange-800 rounded font-medium">
+                            {item.tipoRechazo}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.folio}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.opInicial}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.embalaje}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap">{item.fechaEmbalaje}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-x border-blue-100 font-medium">{item.procesoFho}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasFho !== '' ? item.nRecillasFho : '-'}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100 font-semibold">{item.nRecillasAcopio !== '' ? item.nRecillasAcopio : '-'}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-100/70 border-r border-blue-200 font-bold text-blue-900">
+                        {totalRec > 0 ? totalRec : '-'}
+                      </td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.opFinal}</td>
+                      <td className="py-3 px-3 text-center font-mono whitespace-nowrap bg-blue-50 border-r border-blue-100">{item.nContenedor}</td>
+                      <td className="py-3 px-3 text-center whitespace-nowrap bg-blue-50 border-r border-blue-100">
+                        {item.estado ? (
+                          <span className={`inline-block px-2 py-1 rounded font-medium ${
+                            isPendiente 
+                              ? 'bg-rose-100 text-rose-800' 
+                              : isExportado 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-slate-100 text-slate-800'
+                          }`}>
+                            {item.estado}
+                          </span>
+                        ) : (
+                          <span className="text-slate-400">-</span>
+                        )}
+                      </td>
+                      <td className="py-3 px-4 text-slate-700 bg-blue-50">{item.observaciones}</td>
+                    </tr>
+                  );
+                })
+              ) : (
+                <tr>
+                  <td colSpan={17} className="text-center py-12 text-slate-400">
+                    No hay registros disponibles en el consolidado.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

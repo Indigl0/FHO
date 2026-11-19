@@ -15,6 +15,15 @@ function fmtBoxes(n: number): string {
   return n.toLocaleString('es-CL', { maximumFractionDigits: 0 });
 }
 
+function fmtPallets(n: number): string {
+  const esEntero = Math.abs(n - Math.round(n)) < 1e-9;
+  const valorFormateado = n.toLocaleString('es-CL', {
+    minimumFractionDigits: esEntero ? 0 : 1,
+    maximumFractionDigits: esEntero ? 0 : 1,
+  });
+  return `${valorFormateado} ${Math.round(n) === 1 && esEntero ? 'pallet' : 'pallets'}`;
+}
+
 function formatDate(dateStr?: string): string {
   if (!dateStr) return '—';
   const parts = dateStr.split('-');
@@ -114,15 +123,15 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="center">${formatDate(r.fechaRecepcion)}</td>
                   <td class="center">${formatDate(r.fechaProduccion)}</td>
                   <td class="center">${r.nProceso || ''}</td>
-                  <td class="center bold" style="background-color: #e0f2fe; color: #0369a1;">${r.guiaRecepcion || '—'}</td>
+                  <td class="center bold" style="background-color: #bae6fd; color: #0c4a6e;">${r.guiaRecepcion || '—'}</td>
                   <td class="num">${num(r.recepcionKg)}</td>
                   <td class="text bold">${r.variedad || ''}</td>
                   <td class="num">${procKg}</td>
-                  <td class="num bold" style="background-color: #ecfdf5; color: #065f46;">${c.embaladoKg}</td>
-                  <td class="num" style="background-color: #fff1f2; color: #9f1239;">${num(r.mermaKg)}</td>
+                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${c.embaladoKg}</td>
+                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${num(r.mermaKg)}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="num bold" style="background-color: #fef3c7; color: #b45309;">${pctExp.toFixed(1)}%</td>
+                  <td class="num bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
                   <td class="text">${r.observaciones || ''}</td>
                 </tr>
               `;
@@ -152,6 +161,9 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
 
   const totalCajas3 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.0), 0);
   const totalCajas36 = filtered.reduce((s, r) => s + getBoxCountByWeight(r, 3.6), 0);
+
+  const palletsBulk3 = totalCajas3 / 324;
+  const palletsBulk36 = totalCajas36 / 272;
 
   const monthlyStats = filtered.reduce((acc: Record<string, { recep: number; proc: number }>, r) => {
     const mes = r.mesProduccion ? r.mesProduccion.toUpperCase() : 'SIN MES';
@@ -256,17 +268,23 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                 {fmtKg(totalEmbalado)} <span className="text-xs sm:text-sm font-bold text-emerald-100">Kg</span>
               </p>
             </div>
-            <div className="px-2 flex flex-col justify-between">
+            <div className="px-2 flex flex-col justify-between items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,0 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas3)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
+              <span className="mt-2 text-xs sm:text-sm font-extrabold text-white bg-black/20 border border-white/25 rounded-full px-3 py-0.5">
+                {fmtPallets(palletsBulk3)}
+              </span>
             </div>
-            <div className="pl-2 flex flex-col justify-between">
+            <div className="pl-2 flex flex-col justify-between items-center">
               <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-emerald-100">Bulk 3,6 kg</p>
               <p className="mt-2 text-xl sm:text-3xl font-black tracking-tight text-white">
                 {fmtBoxes(totalCajas36)} <span className="text-xs sm:text-sm font-bold text-emerald-100">cajas</span>
               </p>
+              <span className="mt-2 text-xs sm:text-sm font-extrabold text-white bg-black/20 border border-white/25 rounded-full px-3 py-0.5">
+                {fmtPallets(palletsBulk36)}
+              </span>
             </div>
           </div>
 
@@ -332,20 +350,20 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th className={thCompactLeft}>Variedad</th>
               <th className={`${thCompactCls} text-center`}>Procesado</th>
 
-              <th className="px-2 py-2.5 font-semibold text-emerald-900 whitespace-nowrap text-[11px] bg-emerald-50 border-r border-emerald-200 text-center">Embalado kg</th>
-              <th className="px-2 py-2.5 font-semibold text-rose-900 whitespace-nowrap text-[11px] bg-rose-50 border-r border-rose-200 text-center">Merma kg</th>
+              <th className="px-2 py-2.5 font-extrabold text-emerald-950 whitespace-nowrap text-[11px] bg-emerald-200 border-r border-emerald-300 text-center">Embalado kg</th>
+              <th className="px-2 py-2.5 font-extrabold text-rose-950 whitespace-nowrap text-[11px] bg-rose-200 border-r border-rose-300 text-center">Merma kg</th>
               
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,6 kg</th>
 
-              <th className="px-2 py-2.5 font-semibold text-amber-900 whitespace-nowrap text-[11px] bg-amber-50 border-r border-amber-200 text-center">% Exportación</th>
+              <th className="px-2 py-2.5 font-extrabold text-amber-950 whitespace-nowrap text-[11px] bg-amber-200 border-r border-amber-300 text-center">% Exportación</th>
               <th className="px-2.5 py-2.5 font-semibold text-slate-900 whitespace-nowrap text-[11px] bg-slate-100 text-left">Observaciones</th>
             </tr>
           </thead>
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={15} className="py-12 text-center text-gray-400">
+                <td colSpan={16} className="py-12 text-center text-gray-400">
                   No hay registros disponibles para mostrar en el consolidado.
                 </td>
               </tr>
@@ -366,7 +384,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                     <td className={tdCls}>{formatDate(r.fechaProduccion)}</td>
                     <td className={tdCls}>{r.nProceso}</td>
                     
-                    <td className="px-2.5 py-2 font-bold text-sky-950 bg-sky-100/90 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
+                    <td className="px-2.5 py-2 font-extrabold text-sky-950 bg-sky-100 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
                       {r.guiaRecepcion || '—'}
                     </td>
                     
@@ -374,8 +392,8 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                     <td className={`${tdCls} font-bold text-gray-800`}>{r.variedad}</td>
                     <td className={tdNum}>{fmtKg(procKg)}</td>
                     
-                    <td className={`${tdNum} font-medium text-emerald-800 bg-emerald-50/25`}>{fmtKg(c.embaladoKg)}</td>
-                    <td className={`${tdNum} font-medium text-rose-800 bg-rose-50/25`}>{fmtKg(num(r.mermaKg))}</td>
+                    <td className={`${tdNum} font-bold text-emerald-950 bg-emerald-100/80 border-r border-emerald-200`}>{fmtKg(c.embaladoKg)}</td>
+                    <td className={`${tdNum} font-bold text-rose-950 bg-rose-100/80 border-r border-rose-200`}>{fmtKg(num(r.mermaKg))}</td>
                     
                     <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
                       {fmtBoxes(cajas3)}
@@ -385,7 +403,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                       {fmtBoxes(cajas36)}
                     </td>
 
-                    <td className={`${tdNum} font-bold text-amber-800 bg-amber-50/25`}>{pctExp.toFixed(1)}%</td>
+                    <td className={`${tdNum} font-extrabold text-amber-950 bg-amber-100/80 border-r border-amber-200`}>{pctExp.toFixed(1)}%</td>
                     
                     <td className={`${tdCls} text-slate-600 max-w-[180px] truncate relative group cursor-pointer`}>
                       {r.observaciones ? (
