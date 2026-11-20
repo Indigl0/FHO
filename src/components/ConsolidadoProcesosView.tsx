@@ -92,6 +92,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
         <![endif]-->
         <style>
           table { border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+          .sheet-title { background-color: #0f172a; color: #ffffff; font-size: 14pt; font-weight: bold; text-align: left; padding: 12px 14px; border: 1px solid #0f172a; height: 34px; vertical-align: middle; }
           th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 10px 14px; text-align: center; vertical-align: middle; height: 28px; }
           td { border: 1px solid #cbd5e1; padding: 8px 14px; vertical-align: middle; color: #1e293b; height: 24px; }
           .num { text-align: right; mso-number-format:"0,0"; }
@@ -124,6 +125,9 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
             <col width="340" />
           </colgroup>
           <thead>
+            <tr>
+              <th class="sheet-title" colspan="17">CONSOLIDADO DE PROCESOS — MONITOREO DE FRUTA A GRANEL FHO</th>
+            </tr>
             <tr>
               <th>Productor</th>
               <th>Mes P.</th>
