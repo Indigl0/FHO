@@ -45,18 +45,6 @@ function getDeshidratadoKg(record: any, computed: ReturnType<typeof computeRecor
   return num(record?.deshidratadoKg ?? record?.deshidrataKg);
 }
 
-// Convierte letra de columna Excel (1 -> A, 8 -> H, etc.)
-function colLetter(colIndex1Based: number): string {
-  let temp = colIndex1Based;
-  let letter = '';
-  while (temp > 0) {
-    const rem = (temp - 1) % 26;
-    letter = String.fromCharCode(65 + rem) + letter;
-    temp = Math.floor((temp - 1) / 26);
-  }
-  return letter;
-}
-
 const thCompactCls = 'px-2 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-center';
 const thCompactLeft = 'px-2.5 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-left';
 const tdCls = 'px-2 py-2 text-gray-700 whitespace-nowrap text-[11px] border-r border-slate-100';
@@ -80,18 +68,6 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
   });
 
   const exportExcelPro = () => {
-    const startRow = 2; // Fila 1 es encabezado
-    const endRow = startRow + filtered.length - 1;
-    const totalRow = endRow + 1;
-
-    // Columnas (1-based):
-    // 1:A Productor, 2:B Mes P., 3:C Semana, 4:D F. Recep., 5:E F. Prod., 6:F N° Proc.,
-    // 7:G N° Guía, 8:H Recep. kg, 9:I Variedad, 10:J Procesado, 11:K Embalado kg,
-    // 12:L Merma kg, 13:M Deshidratado kg, 14:N Bulk 3,0 kg, 15:O Rejillas 3,6 kg,
-    // 16:P % Exportación, 17:Q Observaciones
-    const sumCol = (colIdx: number) =>
-      filtered.length > 0 ? `=SUMA(${colLetter(colIdx)}${startRow}:${colLetter(colIdx)}${endRow})` : '0';
-
     const htmlTable = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
@@ -120,7 +96,6 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           .text { text-align: left; }
           .center { text-align: center; }
           .bold { font-weight: bold; }
-          .total-row td { background-color: #e2e8f0; font-weight: bold; border-top: 2px solid #0f172a; border-bottom: 2px solid #0f172a; color: #0f172a; height: 28px; }
         </style>
       </head>
       <body>
@@ -185,34 +160,19 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="center">${formatDate(r.fechaProduccion)}</td>
                   <td class="center">${r.nProceso || ''}</td>
                   <td class="center bold" style="background-color: #bae6fd; color: #0c4a6e;">${r.guiaRecepcion || '—'}</td>
-                  <td class="num">${recepKg.toFixed(1)}</td>
+                  <td class="num">${recepKg}</td>
                   <td class="text bold">${r.variedad || ''}</td>
-                  <td class="num">${procKg.toFixed(1)}</td>
-                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${embKg.toFixed(1)}</td>
-                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${mermaKg.toFixed(1)}</td>
-                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg.toFixed(1)}</td>
+                  <td class="num">${procKg}</td>
+                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${embKg}</td>
+                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${mermaKg}</td>
+                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="pct bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
+                  <td class="pct bold" style="background-color: #fde68a; color: #78350f;">${pctExp}</td>
                   <td class="text">${r.observaciones || ''}</td>
                 </tr>
               `;
             }).join('')}
-            ${filtered.length > 0 ? `
-              <tr class="total-row">
-                <td class="text bold" colspan="7">TOTAL GENERAL</td>
-                <td class="num">${sumCol(8)}</td>
-                <td class="text"></td>
-                <td class="num">${sumCol(10)}</td>
-                <td class="num" style="background-color: #6ee7b7; color: #064e3b;">${sumCol(11)}</td>
-                <td class="num" style="background-color: #fda4af; color: #881337;">${sumCol(12)}</td>
-                <td class="num" style="background-color: #fdba74; color: #7c2d12;">${sumCol(13)}</td>
-                <td class="boxes" style="background-color: #bae6fd; color: #0369a1;">${sumCol(14)}</td>
-                <td class="boxes" style="background-color: #bae6fd; color: #0369a1;">${sumCol(15)}</td>
-                <td class="pct" style="background-color: #fcd34d; color: #78350f;">=SI(J${totalRow}>0,(K${totalRow}/J${totalRow})*100,0)</td>
-                <td class="text"></td>
-              </tr>
-            ` : ''}
           </tbody>
         </table>
       </body>
