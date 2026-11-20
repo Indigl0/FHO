@@ -102,40 +102,42 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     }
   }
 
-  // 6. Destino y Compañía de Transporte (Nave)
+  // 6. Destino ("Puerto de Destino:") y Compañía de Transporte ("Nave:")
   let destino = '';
   let companiaTransporte = '';
 
-  // Formato tipo GUIA_25504: "... LOS PRECIOS SON REFERENCIALES  15973.200000 17952.000000 BERRY FRESH LLC PORT HUENEME POLAR PERU 646N MRFU000179-0 ..."
-  const bloqueConConsignatarioMatch = normalized.match(
-    /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+(POLAR\s+PERU|[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+(?:[A-Z0-9]{3,8}\s+)?(?:[A-Z]{4}\d{6,7}-\d|[A-Z]{4}\d{7}|ML-[A-Z0-9]+|\d{6,})/i
+  // Caso A: etiquetas explícitas "Puerto de Destino:" y "Nave:" seguidas de sus valores en columna
+  const puertoDestinoEtiquetaMatch = normalized.match(
+    /Puerto\s+de\s+Destino\s*:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave\s*:|Numero\s+de\s+Contendor\s*:|Sello\s+Naviera\s*:|Reserva\s*:|$))/i
   );
+  if (puertoDestinoEtiquetaMatch) {
+    destino = puertoDestinoEtiquetaMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+  }
 
-  if (bloqueConConsignatarioMatch) {
-    destino = bloqueConConsignatarioMatch[1].trim();
-    companiaTransporte = bloqueConConsignatarioMatch[2].trim();
-  } else {
-    // Formato tipo GUIA_25478: "... LOS PRECIOS SON REFERENCIALES ... ROTTERDAM MSC LEILA NX647R MSDU..."
-    const bloqueExportMatch = normalized.match(
-      /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
+  const naveEtiquetaMatch = normalized.match(
+    /\bNave\s*:\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,45}?)(?=\s+(?:Numero\s+de\s+Contendor\s*:|N[°º]?\s*Contenedor\s*:|Sello\s+Naviera\s*:|Sello\s+USDA-APHIS\s*:|Reserva\s*:|Termografo\s*:|Referencia\s*:|$))/i
+  );
+  if (naveEtiquetaMatch) {
+    companiaTransporte = naveEtiquetaMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+  }
+
+  // Caso B: en PDFs donde las etiquetas salen juntas y los valores salen en fila tras "LOS PRECIOS SON REFERENCIALES"
+  if (!destino || !companiaTransporte) {
+    const bloqueConConsignatarioMatch = normalized.match(
+      /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+([A-Z0-9ÁÉÍÓÚÑ]+(?:\s+[A-Z0-9ÁÉÍÓÚÑ]+){0,3}?)\s+(?:[A-Z]{4}\d{6,7}-\d|[A-Z]{4}\d{7}|ML-[A-Z0-9]+|\d{6,})/i
     );
 
-    if (bloqueExportMatch) {
-      destino = bloqueExportMatch[1].trim();
-      companiaTransporte = bloqueExportMatch[2].trim();
+    if (bloqueConConsignatarioMatch) {
+      if (!destino) destino = bloqueConConsignatarioMatch[1].trim();
+      if (!companiaTransporte) companiaTransporte = bloqueConConsignatarioMatch[2].trim();
     } else {
-      const naveMatch = normalized.match(
-        /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,45}?)(?=\s+(?:Numero\s*de\s*Contendor|N[°º]?\s*Contenedor|Sello\s*Naviera|Sello\s*USDA|Reserva|Termografo|Referencia|Celular|Consignatario|Puerto|Patente|FECHA|$))/i
+      const bloqueExportMatch = normalized.match(
+        /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
       );
-      if (naveMatch) {
-        companiaTransporte = naveMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
-      }
 
-      const destinoMatch = normalized.match(
-        /(?:Puerto\s*de\s*Destino|Destino)\s*:?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave|Consignatario|Numero\s*de\s*Contendor|Sello|Reserva|Termografo|Referencia|Patente|FECHA|$))/i
-      );
-      if (destinoMatch) {
-        destino = destinoMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+      if (bloqueExportMatch) {
+        if (!destino) destino = bloqueExportMatch[1].trim();
+        if (!companiaTransporte) companiaTransporte = bloqueExportMatch[2].trim();
       }
     }
   }
