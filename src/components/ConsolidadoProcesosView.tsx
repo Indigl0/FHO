@@ -45,6 +45,18 @@ function getDeshidratadoKg(record: any, computed: ReturnType<typeof computeRecor
   return num(record?.deshidratadoKg ?? record?.deshidrataKg);
 }
 
+// Convierte letra de columna Excel (1 -> A, 8 -> H, etc.)
+function colLetter(colIndex1Based: number): string {
+  let temp = colIndex1Based;
+  let letter = '';
+  while (temp > 0) {
+    const rem = (temp - 1) % 26;
+    letter = String.fromCharCode(65 + rem) + letter;
+    temp = Math.floor((temp - 1) / 26);
+  }
+  return letter;
+}
+
 const thCompactCls = 'px-2 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-center';
 const thCompactLeft = 'px-2.5 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-left';
 const tdCls = 'px-2 py-2 text-gray-700 whitespace-nowrap text-[11px] border-r border-slate-100';
@@ -68,6 +80,18 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
   });
 
   const exportExcelPro = () => {
+    const startRow = 2; // Fila 1 es encabezado
+    const endRow = startRow + filtered.length - 1;
+    const totalRow = endRow + 1;
+
+    // Columnas (1-based):
+    // 1:A Productor, 2:B Mes P., 3:C Semana, 4:D F. Recep., 5:E F. Prod., 6:F N° Proc.,
+    // 7:G N° Guía, 8:H Recep. kg, 9:I Variedad, 10:J Procesado, 11:K Embalado kg,
+    // 12:L Merma kg, 13:M Deshidratado kg, 14:N Bulk 3,0 kg, 15:O Rejillas 3,6 kg,
+    // 16:P % Exportación, 17:Q Observaciones
+    const sumCol = (colIdx: number) =>
+      filtered.length > 0 ? `=SUMA(${colLetter(colIdx)}${startRow}:${colLetter(colIdx)}${endRow})` : '0';
+
     const htmlTable = `
       <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40">
       <head>
@@ -87,18 +111,39 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
         </xml>
         <![endif]-->
         <style>
-          table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; width: 100%; }
-          th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 8px 10px; text-align: center; vertical-align: middle; }
-          td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: middle; color: #334155; }
+          table { border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
+          th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 10px 14px; text-align: center; vertical-align: middle; height: 28px; }
+          td { border: 1px solid #cbd5e1; padding: 8px 14px; vertical-align: middle; color: #1e293b; height: 24px; }
           .num { text-align: right; mso-number-format:"0.0"; }
-          .boxes { text-align: right; mso-number-format:"#,##0"; }
+          .boxes { text-align: right; mso-number-format:"0"; }
+          .pct { text-align: right; mso-number-format:"0.0"; }
           .text { text-align: left; }
           .center { text-align: center; }
           .bold { font-weight: bold; }
+          .total-row td { background-color: #e2e8f0; font-weight: bold; border-top: 2px solid #0f172a; border-bottom: 2px solid #0f172a; color: #0f172a; height: 28px; }
         </style>
       </head>
       <body>
         <table>
+          <colgroup>
+            <col width="110" />
+            <col width="130" />
+            <col width="145" />
+            <col width="120" />
+            <col width="120" />
+            <col width="95" />
+            <col width="105" />
+            <col width="125" />
+            <col width="135" />
+            <col width="125" />
+            <col width="135" />
+            <col width="120" />
+            <col width="155" />
+            <col width="165" />
+            <col width="175" />
+            <col width="145" />
+            <col width="340" />
+          </colgroup>
           <thead>
             <tr>
               <th>Productor</th>
@@ -128,9 +173,9 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               const embKg = round1(c.embaladoKg);
               const mermaKg = round1(num(r.mermaKg));
               const deshidratadoKg = round1(getDeshidratadoKg(r, c));
-              const cajas3 = getBoxCountByWeight(r, 3.0);
-              const cajas36 = getBoxCountByWeight(r, 3.6);
-              const pctExp = procKg > 0 ? (embKg / procKg) * 100 : 0;
+              const cajas3 = Math.round(getBoxCountByWeight(r, 3.0));
+              const cajas36 = Math.round(getBoxCountByWeight(r, 3.6));
+              const pctExp = procKg > 0 ? round1((embKg / procKg) * 100) : 0;
               return `
                 <tr>
                   <td class="text bold">${r.productor || ''}</td>
@@ -148,11 +193,26 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg.toFixed(1)}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="num bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
+                  <td class="pct bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
                   <td class="text">${r.observaciones || ''}</td>
                 </tr>
               `;
             }).join('')}
+            ${filtered.length > 0 ? `
+              <tr class="total-row">
+                <td class="text bold" colspan="7">TOTAL GENERAL</td>
+                <td class="num">${sumCol(8)}</td>
+                <td class="text"></td>
+                <td class="num">${sumCol(10)}</td>
+                <td class="num" style="background-color: #6ee7b7; color: #064e3b;">${sumCol(11)}</td>
+                <td class="num" style="background-color: #fda4af; color: #881337;">${sumCol(12)}</td>
+                <td class="num" style="background-color: #fdba74; color: #7c2d12;">${sumCol(13)}</td>
+                <td class="boxes" style="background-color: #bae6fd; color: #0369a1;">${sumCol(14)}</td>
+                <td class="boxes" style="background-color: #bae6fd; color: #0369a1;">${sumCol(15)}</td>
+                <td class="pct" style="background-color: #fcd34d; color: #78350f;">=SI(J${totalRow}>0,(K${totalRow}/J${totalRow})*100,0)</td>
+                <td class="text"></td>
+              </tr>
+            ` : ''}
           </tbody>
         </table>
       </body>
