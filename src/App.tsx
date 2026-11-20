@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator, Menu, ChevronDown } from 'lucide-react';
+import { Table2, BarChart3, Shield, Eye, Lock, Unlock, Loader2, FileText, ClipboardList, BarChart4, Calculator, Menu, ChevronDown, Truck } from 'lucide-react';
 import type { ProcessRecord, ViewKey } from './types';
 import { supabase } from './utils/supabase';
 import { GranelFhoView } from './components/GranelFhoView';
@@ -8,6 +8,7 @@ import ArchivosPlanosView from './components/ArchivosPlanosView';
 import { RechazosAdminView } from './components/RechazosAdminView';
 import { ConsolidadoRechazosView } from './components/ConsolidadoRechazosView';
 import { CalculadoraProcesosView } from './components/CalculadoraProcesosView';
+import { ChequeoPrecargaView } from './components/ChequeoPrecargaView';
 
 // ==========================================
 // CONFIGURACIÓN DE ACCESOS Y OPERADORES
@@ -16,7 +17,7 @@ const SAG_OPERATOR_EMAILS: string[] = ['mpineda@higueraoriente.cl', 'jgonzalez@h
 const CALCULATOR_ONLY_EMAILS: string[] = ['fho@gmail.com'];
 
 export function App() {
-  const [view, setView] = useState<ViewKey | 'calculadora'>('consolidado');
+  const [view, setView] = useState<ViewKey | 'calculadora' | 'chequeo'>('consolidado');
   const [records, setRecords] = useState<ProcessRecord[]>([]);
   const [loading, setLoading] = useState(true);
   
@@ -190,7 +191,7 @@ export function App() {
   return (
     <div className="min-h-screen bg-gray-50 flex flex-col justify-between">
       <div>
-        <header className="sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
+        <header className="no-print sticky top-0 z-40 border-b border-gray-200 bg-white shadow-sm">
           <div className="flex flex-col sm:flex-row w-full items-start sm:items-center justify-between px-4 sm:px-6 py-3 gap-3">
             <div className="flex items-center gap-3">
               <div className="flex h-11 w-12 sm:h-12 sm:w-14 items-center justify-center rounded-2xl bg-white shadow-sm border border-gray-200 p-1.5 shrink-0">
@@ -291,6 +292,7 @@ export function App() {
                       <option value="rechazos">📋 Gestión Rechazos ASQUE</option>
                       <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
                       <option value="calculadora">🧮 Calculadora de Procesos</option>
+                      <option value="chequeo">🚛 Chequeo Pre-Carga</option>
                       <option value="planos">📄 Archivos SAG</option>
                     </>
                   )}
@@ -298,6 +300,7 @@ export function App() {
                     <>
                       <option value="consolidado">📈 Consolidado Procesos GRANEL</option>
                       <option value="consolidado-rechazos">📊 Consolidado Rechazos ASQUE</option>
+                      <option value="chequeo">🚛 Chequeo Pre-Carga</option>
                     </>
                   )}
                 </select>
@@ -319,6 +322,7 @@ export function App() {
                   <TabButton active={view === 'rechazos'} onClick={() => setView('rechazos')} icon={<ClipboardList className="h-4 w-4" />} label="Gestión Rechazos ASQUE" />
                   <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
                   <TabButton active={view === 'calculadora'} onClick={() => setView('calculadora')} icon={<Calculator className="h-4 w-4" />} label="Calculadora de Procesos" />
+                  <TabButton active={view === 'chequeo'} onClick={() => setView('chequeo')} icon={<Truck className="h-4 w-4" />} label="Chequeo Pre-Carga" />
                   <TabButton active={view === 'planos'} onClick={() => setView('planos')} icon={<FileText className="h-4 w-4" />} label="Archivos SAG" />
                 </>
               )}
@@ -327,6 +331,7 @@ export function App() {
                 <>
                   <TabButton active={view === 'consolidado'} onClick={() => setView('consolidado')} icon={<BarChart3 className="h-4 w-4" />} label="Consolidado Procesos GRANEL" />
                   <TabButton active={view === 'consolidado-rechazos'} onClick={() => setView('consolidado-rechazos')} icon={<BarChart4 className="h-4 w-4" />} label="Consolidado Rechazos ASQUE" />
+                  <TabButton active={view === 'chequeo'} onClick={() => setView('chequeo')} icon={<Truck className="h-4 w-4" />} label="Chequeo Pre-Carga" />
                 </>
               )}
             </nav>
@@ -338,6 +343,7 @@ export function App() {
           {view === 'consolidado-rechazos' && <ConsolidadoRechazosView />}
           {view === 'planos' && <ArchivosPlanosView />}
           {view === 'calculadora' && <CalculadoraProcesosView />}
+          {view === 'chequeo' && <ChequeoPrecargaView />}
           {userRole === 'admin' && !isSagOperator && !isCalculatorOnly && (
             <>
               {view === 'granel' && <GranelFhoView records={records} userRole={userRole} onRefresh={fetchRecords} />}
@@ -408,7 +414,7 @@ export function App() {
         </div>
       )}
 
-      <footer className="border-t border-gray-200 bg-white py-4 px-6">
+      <footer className="no-print border-t border-gray-200 bg-white py-4 px-6">
         <div className="flex flex-col items-center justify-center gap-1 text-center text-xs text-gray-400">
           <p>ARÁNDANOS — Sistema de Control y Cuadratura · Sincronizado en tiempo real con Supabase</p>
           <p className="text-[11px] font-medium text-gray-500">
