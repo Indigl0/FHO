@@ -11,6 +11,10 @@ function round1(n: number): number {
   return Math.round((Number.isFinite(n) ? n : 0) * 10) / 10;
 }
 
+function toExcelDec(n: number): string {
+  return round1(n).toFixed(1).replace('.', ',');
+}
+
 function fmtKg(n: number): string {
   return round1(n).toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
@@ -90,9 +94,9 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           table { border-collapse: collapse; font-family: Calibri, Arial, sans-serif; font-size: 11pt; }
           th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 10px 14px; text-align: center; vertical-align: middle; height: 28px; }
           td { border: 1px solid #cbd5e1; padding: 8px 14px; vertical-align: middle; color: #1e293b; height: 24px; }
-          .num { text-align: right; mso-number-format:"0.0"; }
+          .num { text-align: right; mso-number-format:"0,0"; }
           .boxes { text-align: right; mso-number-format:"0"; }
-          .pct { text-align: right; mso-number-format:"0.0"; }
+          .pct { text-align: right; mso-number-format:"0,0"; }
           .text { text-align: left; }
           .center { text-align: center; }
           .bold { font-weight: bold; }
@@ -160,15 +164,15 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="center">${formatDate(r.fechaProduccion)}</td>
                   <td class="center">${r.nProceso || ''}</td>
                   <td class="center bold" style="background-color: #bae6fd; color: #0c4a6e;">${r.guiaRecepcion || '—'}</td>
-                  <td class="num">${recepKg}</td>
+                  <td class="num">${toExcelDec(recepKg)}</td>
                   <td class="text bold">${r.variedad || ''}</td>
-                  <td class="num">${procKg}</td>
-                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${embKg}</td>
-                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${mermaKg}</td>
-                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg}</td>
+                  <td class="num">${toExcelDec(procKg)}</td>
+                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${toExcelDec(embKg)}</td>
+                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${toExcelDec(mermaKg)}</td>
+                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${toExcelDec(deshidratadoKg)}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
-                  <td class="pct bold" style="background-color: #fde68a; color: #78350f;">${pctExp}</td>
+                  <td class="pct bold" style="background-color: #fde68a; color: #78350f;">${toExcelDec(pctExp)}</td>
                   <td class="text">${r.observaciones || ''}</td>
                 </tr>
               `;
