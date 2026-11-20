@@ -4,25 +4,27 @@ import type { ProcessRecord, ComputedRecord } from '../types';
 export const num = (v: number | string | '' | undefined | null): number =>
   v === '' || v === undefined || v === null || isNaN(Number(v)) ? 0 : Number(v);
 
+const round3 = (n: number): number => Math.round(n * 1000) / 1000;
+export const round1 = (n: number): number => Math.round(n * 10) / 10;
+
 export function computeRecord(r: ProcessRecord): ComputedRecord {
   const recepcionKg = num(r.recepcionKg);
   const frutaProcesoKg = num(r.frutaProcesoKg);
   const procesadoKg = num(r.procesadoKg);
-  const stockKg = frutaProcesoKg - procesadoKg;
+  const stockKg = round3(frutaProcesoKg - procesadoKg);
 
   let embaladoKg = 0;
-  
-  // 1. Sumar desde el objeto cajas estructurado
+
   if (r.cajas && typeof r.cajas === 'object' && !Array.isArray(r.cajas)) {
     for (const fmt of ACTIVE_BOX_FORMATS) {
       const cant = num(r.cajas[fmt.id]);
       embaladoKg += cant * fmt.factor;
     }
   }
+  embaladoKg = round3(embaladoKg);
 
   const mermaKg = num(r.mermaKg);
-  // Deshidratado = Recepción - (Embalado + Merma)
-  const deshidrataKg = recepcionKg - (embaladoKg + mermaKg);
+  const deshidrataKg = round3(recepcionKg - (embaladoKg + mermaKg));
   const frutaIqfKg = num(r.frutaIqfKg);
 
   const pctExportacion = procesadoKg > 0 ? embaladoKg / procesadoKg : 0;
@@ -42,10 +44,6 @@ export function computeRecord(r: ProcessRecord): ComputedRecord {
   };
 }
 
-/**
- * Función universal para extraer el número de cajas según el peso objetivo (ej: 3.0 o 3.6).
- * Compatible con registros antiguos, nuevos, arreglos o JSON de Supabase.
- */
 export function getBoxCountByWeight(r: ProcessRecord | any, targetWeight: number): number {
   if (!r) return 0;
 
@@ -56,7 +54,6 @@ export function getBoxCountByWeight(r: ProcessRecord | any, targetWeight: number
     } catch (e) {}
   }
 
-  // 1. Si es un objeto de formatos (ej: { "3.0": 164, "3.6": 0 })
   if (cajasObj && typeof cajasObj === 'object' && !Array.isArray(cajasObj)) {
     for (const [key, val] of Object.entries(cajasObj)) {
       const boxFormat = ACTIVE_BOX_FORMATS.find((b) => b.id === key);
@@ -67,7 +64,6 @@ export function getBoxCountByWeight(r: ProcessRecord | any, targetWeight: number
     }
   }
 
-  // 2. Si es un arreglo
   if (Array.isArray(cajasObj)) {
     for (const item of cajasObj) {
       if (!item) continue;
@@ -77,7 +73,6 @@ export function getBoxCountByWeight(r: ProcessRecord | any, targetWeight: number
     }
   }
 
-  // 3. Respaldo por propiedades directas del registro
   if (targetWeight === 3.0) {
     return num(r.cajasBulk3 ?? r.cajasBulk30 ?? r.cajas30 ?? r.bulk3 ?? 0);
   }

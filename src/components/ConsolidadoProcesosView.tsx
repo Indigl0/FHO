@@ -7,8 +7,12 @@ interface Props {
   records: ProcessRecord[];
 }
 
+function round1(n: number): number {
+  return Math.round((Number.isFinite(n) ? n : 0) * 10) / 10;
+}
+
 function fmtKg(n: number): string {
-  return n.toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return round1(n).toLocaleString('es-CL', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
 
 function fmtBoxes(n: number): string {
@@ -86,7 +90,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           table { border-collapse: collapse; font-family: 'Segoe UI', Arial, sans-serif; font-size: 10pt; width: 100%; }
           th { background-color: #1e293b; color: #ffffff; font-weight: bold; border: 1px solid #0f172a; padding: 8px 10px; text-align: center; vertical-align: middle; }
           td { border: 1px solid #cbd5e1; padding: 6px 8px; vertical-align: middle; color: #334155; }
-          .num { text-align: right; mso-number-format:"#,##0.0"; }
+          .num { text-align: right; mso-number-format:"0.0"; }
           .boxes { text-align: right; mso-number-format:"#,##0"; }
           .text { text-align: left; }
           .center { text-align: center; }
@@ -119,11 +123,14 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           <tbody>
             ${filtered.map((r: any) => {
               const c = computeRecord(r);
-              const procKg = num(r.procesadoKg);
-              const deshidratadoKg = getDeshidratadoKg(r, c);
+              const recepKg = round1(num(r.recepcionKg));
+              const procKg = round1(num(r.procesadoKg));
+              const embKg = round1(c.embaladoKg);
+              const mermaKg = round1(num(r.mermaKg));
+              const deshidratadoKg = round1(getDeshidratadoKg(r, c));
               const cajas3 = getBoxCountByWeight(r, 3.0);
               const cajas36 = getBoxCountByWeight(r, 3.6);
-              const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
+              const pctExp = procKg > 0 ? (embKg / procKg) * 100 : 0;
               return `
                 <tr>
                   <td class="text bold">${r.productor || ''}</td>
@@ -133,12 +140,12 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="center">${formatDate(r.fechaProduccion)}</td>
                   <td class="center">${r.nProceso || ''}</td>
                   <td class="center bold" style="background-color: #bae6fd; color: #0c4a6e;">${r.guiaRecepcion || '—'}</td>
-                  <td class="num">${num(r.recepcionKg)}</td>
+                  <td class="num">${recepKg.toFixed(1)}</td>
                   <td class="text bold">${r.variedad || ''}</td>
-                  <td class="num">${procKg}</td>
-                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${c.embaladoKg}</td>
-                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${num(r.mermaKg)}</td>
-                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg}</td>
+                  <td class="num">${procKg.toFixed(1)}</td>
+                  <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${embKg.toFixed(1)}</td>
+                  <td class="num bold" style="background-color: #fecdd3; color: #881337;">${mermaKg.toFixed(1)}</td>
+                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg.toFixed(1)}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
                   <td class="num bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
