@@ -42,39 +42,17 @@ function limpiarNombreChofer(raw: string): string {
     .trim();
 }
 
-function limpiarCompania(raw: string): string {
-  return raw
-    .replace(
-      /\b(?:[A-Z]{4}\d{7}|CONTENEDOR|CONTENDOR|SELLO|RESERVA|TERMOGRAFO|TERM[ÓO]GRAFO|REFERENCIA|OBSERVACIONES|TIMBRE|FOLIO)\b.*$/i,
-      ''
-    )
-    .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
-
-function limpiarDestino(raw: string): string {
-  return raw
-    .replace(
-      /\b(?:NAVE|CONSIGNATARIO|CONTENEDOR|CONTENDOR|SELLO|RESERVA|TERMOGRAFO|REFERENCIA|PATENTE|FECHA)\b.*$/i,
-      ''
-    )
-    .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
-    .replace(/\s{2,}/g, ' ')
-    .trim();
-}
-
 function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const normalized = rawText.replace(/\s+/g, ' ').trim();
 
-  // 1. Número de guía
+  // 1. Número de guía ("Nº 25504" / "Nº 25478")
   const guiaMatch =
     normalized.match(/\bN[°ºo.]\s*(\d{4,8})\b/i) ||
     normalized.match(/\bGU[IÍ]A\s*(?:DE\s*DESPACHO)?\s*(?:ELECTR[OÓ]NICA)?\s*N[°ºo.]?\s*(\d{4,8})\b/i) ||
     fileName.match(/(\d{4,8})/);
   const numeroGuia = guiaMatch ? guiaMatch[1] : '';
 
-  // 2. Fecha (dd-mm-yyyy o dd/mm/yyyy)
+  // 2. Fecha ("18-11-2026" / "17-11-2026")
   const fechaMatch = normalized.match(/\b(\d{2}[-/]\d{2}[-/]\d{4})\b/);
   const fecha = fechaMatch ? fechaMatch[1].replace(/\//g, '-') : '';
 
@@ -82,28 +60,26 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const horaMatch = normalized.match(/\bHora\s*:?\s*(\d{1,2}:\d{2}(?::\d{2})?)\b/i);
   const hora = horaMatch ? horaMatch[1] : '';
 
-  // 4. Patente camión y patente carro
+  // 4. Patente camión y patente carro (ej. "BYXL-11 / JP-4054" o "DRHY55 / KDGB65")
   let patenteCamion = '';
   let patenteCarro = '';
-
-  const patentesTrasEtiquetaMatch = normalized.match(
-    /\bPatente(?:s)?\s*(?:Cami[oó]n\s*\/?\s*Carro)?\s*:?\s*([A-Z]{2,4}[-\s]?\d{2,4})(?:\s*(?:\/|-|\s+)\s*([A-Z]{2,4}[-\s]?\d{2,4}))?\b/i
+  const dosPatentesMatch = normalized.match(
+    /\b([A-Z]{2,4}-?\d{2,4})\s*\/\s*([A-Z]{2,4}-?\d{2,4})\b/
   );
-
-  if (patentesTrasEtiquetaMatch) {
-    patenteCamion = patentesTrasEtiquetaMatch[1].replace(/[-\s]/g, '').toUpperCase();
-    patenteCarro = (patentesTrasEtiquetaMatch[2] || '').replace(/[-\s]/g, '').toUpperCase();
+  if (dosPatentesMatch) {
+    patenteCamion = dosPatentesMatch[1].toUpperCase();
+    patenteCarro = dosPatentesMatch[2].toUpperCase();
   } else {
-    const dosPatentesMatch = normalized.match(
-      /\b([A-Z]{2,4}\d{2,4})\s*(?:\/|-)\s*([A-Z]{2,4}\d{2,4})\b/
+    const etiquetaPatenteMatch = normalized.match(
+      /\bPatente(?:s)?\s*(?:Cami[oó]n\s*\/?\s*Carro)?\s*:?\s*([A-Z0-9-]{4,9})(?:\s*(?:\/|-)\s*([A-Z0-9-]{4,9}))?\b/i
     );
-    if (dosPatentesMatch) {
-      patenteCamion = dosPatentesMatch[1].toUpperCase();
-      patenteCarro = dosPatentesMatch[2].toUpperCase();
+    if (etiquetaPatenteMatch) {
+      patenteCamion = etiquetaPatenteMatch[1].toUpperCase();
+      patenteCarro = (etiquetaPatenteMatch[2] || '').toUpperCase();
     }
   }
 
-  // 5. Nombre del chofer
+  // 5. Nombre del chofer (antes del RUT con o sin puntos, o antes de "Patente: RUT Transp.: Nombre Transp.:")
   let nombreChofer = '';
   const choferAntesRutMatch = normalized.match(
     /\b([A-ZÁÉÍÓÚÑ]{2,}(?:\s+[A-ZÁÉÍÓÚÑ]{2,}){1,5})\s+\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\s+Patente:/
@@ -130,26 +106,37 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   let destino = '';
   let companiaTransporte = '';
 
-  const bloqueExportMatch = normalized.match(
-    /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+([A-ZÁÉÍÓÚÑ]{3,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{1,40}?)(?=\s+(?:[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,}|$))/i
+  // Formato tipo GUIA_25504: "... LOS PRECIOS SON REFERENCIALES  15973.200000 17952.000000 BERRY FRESH LLC PORT HUENEME POLAR PERU 646N MRFU000179-0 ..."
+  const bloqueConConsignatarioMatch = normalized.match(
+    /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+(POLAR\s+PERU|[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+(?:[A-Z0-9]{3,8}\s+)?(?:[A-Z]{4}\d{6,7}-\d|[A-Z]{4}\d{7}|ML-[A-Z0-9]+|\d{6,})/i
   );
 
-  if (bloqueExportMatch) {
-    destino = limpiarDestino(bloqueExportMatch[1]);
-    companiaTransporte = limpiarCompania(bloqueExportMatch[2]);
+  if (bloqueConConsignatarioMatch) {
+    destino = bloqueConConsignatarioMatch[1].trim();
+    companiaTransporte = bloqueConConsignatarioMatch[2].trim();
   } else {
-    const naveMatch = normalized.match(
-      /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,45}?)(?=\s+(?:Numero\s*de\s*Contendor|N[°º]?\s*Contenedor|Sello\s*Naviera|Sello\s*USDA|Reserva|Termografo|Referencia|Celular|Consignatario|Puerto|Patente|FECHA|$))/i
+    // Formato tipo GUIA_25478: "... LOS PRECIOS SON REFERENCIALES ... ROTTERDAM MSC LEILA NX647R MSDU..."
+    const bloqueExportMatch = normalized.match(
+      /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
     );
-    if (naveMatch) {
-      companiaTransporte = limpiarCompania(naveMatch[1]);
-    }
 
-    const destinoMatch = normalized.match(
-      /(?:Puerto\s*de\s*Destino|Destino)\s*:?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave|Consignatario|Numero\s*de\s*Contendor|Sello|Reserva|Termografo|Referencia|Patente|FECHA|$))/i
-    );
-    if (destinoMatch) {
-      destino = limpiarDestino(destinoMatch[1]);
+    if (bloqueExportMatch) {
+      destino = bloqueExportMatch[1].trim();
+      companiaTransporte = bloqueExportMatch[2].trim();
+    } else {
+      const naveMatch = normalized.match(
+        /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,45}?)(?=\s+(?:Numero\s*de\s*Contendor|N[°º]?\s*Contenedor|Sello\s*Naviera|Sello\s*USDA|Reserva|Termografo|Referencia|Celular|Consignatario|Puerto|Patente|FECHA|$))/i
+      );
+      if (naveMatch) {
+        companiaTransporte = naveMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+      }
+
+      const destinoMatch = normalized.match(
+        /(?:Puerto\s*de\s*Destino|Destino)\s*:?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave|Consignatario|Numero\s*de\s*Contendor|Sello|Reserva|Termografo|Referencia|Patente|FECHA|$))/i
+      );
+      if (destinoMatch) {
+        destino = destinoMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+      }
     }
   }
 
