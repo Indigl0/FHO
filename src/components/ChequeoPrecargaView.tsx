@@ -106,7 +106,7 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   let destino = '';
   let companiaTransporte = '';
 
-  // Caso A: etiquetas explícitas "Puerto de Destino:" y "Nave:" seguidas de sus valores en columna
+  // Caso A: etiquetas explícitas "Puerto de Destino:" y "Nave:" seguidas de sus valores
   const puertoDestinoEtiquetaMatch = normalized.match(
     /Puerto\s+de\s+Destino\s*:\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave\s*:|Numero\s+de\s+Contendor\s*:|Sello\s+Naviera\s*:|Reserva\s*:|$))/i
   );
@@ -121,15 +121,16 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     companiaTransporte = naveEtiquetaMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
   }
 
-  // Caso B: en PDFs donde las etiquetas salen juntas y los valores salen en fila tras "LOS PRECIOS SON REFERENCIALES"
+  // Caso B: valores en fila tras "LOS PRECIOS SON REFERENCIALES" y los 2 totales de kilos:
+  // [Consignatario] + [Puerto de Destino] + [Nave] + [Contenedor / Sello / Reserva]
   if (!destino || !companiaTransporte) {
-    const bloqueConConsignatarioMatch = normalized.match(
-      /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+([A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+){0,2}?)\s+([A-Z0-9ÁÉÍÓÚÑ]+(?:\s+[A-Z0-9ÁÉÍÓÚÑ]+){0,3}?)\s+(?:[A-Z]{4}\d{6,7}-\d|[A-Z]{4}\d{7}|ML-[A-Z0-9]+|\d{6,})/i
+    const filaValoresExportMatch = normalized.match(
+      /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ.&-]+(?:\s+[A-Z0-9ÁÉÍÓÚÑ.&-]+){0,3}?\s+(PORT\s+[A-ZÁÉÍÓÚÑ]+(?:\s+[A-ZÁÉÍÓÚÑ]+)?|[A-ZÁÉÍÓÚÑ]{3,20}(?:\s+[A-ZÁÉÍÓÚÑ]{2,20})?)\s+([A-Z0-9ÁÉÍÓÚÑ]+(?:\s+[A-Z0-9ÁÉÍÓÚÑ]+){0,3}?)\s+(?=[A-Z]{4}\d{6,7}-\d|[A-Z]{4}\d{7}|ML-[A-Z0-9]+|\d{6,})/i
     );
 
-    if (bloqueConConsignatarioMatch) {
-      if (!destino) destino = bloqueConConsignatarioMatch[1].trim();
-      if (!companiaTransporte) companiaTransporte = bloqueConConsignatarioMatch[2].trim();
+    if (filaValoresExportMatch) {
+      if (!destino) destino = filaValoresExportMatch[1].trim();
+      if (!companiaTransporte) companiaTransporte = filaValoresExportMatch[2].trim();
     } else {
       const bloqueExportMatch = normalized.match(
         /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
