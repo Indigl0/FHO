@@ -34,6 +34,13 @@ function formatDate(dateStr?: string): string {
   return dateStr;
 }
 
+function getDeshidratadoKg(record: any, computed: ReturnType<typeof computeRecord>): number {
+  if (computed && typeof computed.deshidrataKg === 'number' && !Number.isNaN(computed.deshidrataKg)) {
+    return computed.deshidrataKg;
+  }
+  return num(record?.deshidratadoKg ?? record?.deshidrataKg);
+}
+
 const thCompactCls = 'px-2 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-center';
 const thCompactLeft = 'px-2.5 py-2.5 font-bold text-gray-900 whitespace-nowrap text-[11px] bg-gray-200 border-r border-gray-300 text-left';
 const tdCls = 'px-2 py-2 text-gray-700 whitespace-nowrap text-[11px] border-r border-slate-100';
@@ -102,6 +109,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th>Procesado</th>
               <th style="background-color: #059669; color: white;">Embalado kg</th>
               <th style="background-color: #e11d48; color: white;">Merma kg</th>
+              <th style="background-color: #ea580c; color: white;">Deshidratado kg</th>
               <th style="background-color: #0284c7; color: white;">Bulk 3,0 kg (cajas)</th>
               <th style="background-color: #0284c7; color: white;">Rejillas 3,6 kg (cajas)</th>
               <th style="background-color: #d97706; color: white;">% Exportación</th>
@@ -112,6 +120,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
             ${filtered.map((r: any) => {
               const c = computeRecord(r);
               const procKg = num(r.procesadoKg);
+              const deshidratadoKg = getDeshidratadoKg(r, c);
               const cajas3 = getBoxCountByWeight(r, 3.0);
               const cajas36 = getBoxCountByWeight(r, 3.6);
               const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
@@ -129,6 +138,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                   <td class="num">${procKg}</td>
                   <td class="num bold" style="background-color: #a7f3d0; color: #064e3b;">${c.embaladoKg}</td>
                   <td class="num bold" style="background-color: #fecdd3; color: #881337;">${num(r.mermaKg)}</td>
+                  <td class="num bold" style="background-color: #fed7aa; color: #7c2d12;">${deshidratadoKg}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas3}</td>
                   <td class="boxes" style="background-color: #f0f9ff; color: #0369a1; font-weight: bold;">${cajas36}</td>
                   <td class="num bold" style="background-color: #fde68a; color: #78350f;">${pctExp.toFixed(1)}%</td>
@@ -203,7 +213,6 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
 
       {/* Dos Recuadros Grandes */}
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        
         {/* Recuadro 1: Naranja */}
         <div className="relative overflow-hidden rounded-3xl bg-[#e67e22] px-5 sm:px-7 py-8 shadow-lg text-white transition-all duration-300 space-y-6">
           <div className="flex items-center justify-between border-b border-white/40 pb-3">
@@ -308,7 +317,6 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
             </div>
           )}
         </div>
-
       </div>
 
       {/* Toolbar */}
@@ -341,7 +349,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               <th className={thCompactCls}>F. Recep.</th>
               <th className={thCompactCls}>F. Prod.</th>
               <th className={thCompactCls}>N° Proc.</th>
-              
+
               <th className="px-2 py-2.5 font-extrabold text-sky-950 whitespace-nowrap text-[11px] bg-sky-200 border-r border-sky-300 text-center shadow-inner">
                 N° Guía
               </th>
@@ -352,7 +360,8 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
 
               <th className="px-2 py-2.5 font-extrabold text-emerald-950 whitespace-nowrap text-[11px] bg-emerald-200 border-r border-emerald-300 text-center">Embalado kg</th>
               <th className="px-2 py-2.5 font-extrabold text-rose-950 whitespace-nowrap text-[11px] bg-rose-200 border-r border-rose-300 text-center">Merma kg</th>
-              
+              <th className="px-2 py-2.5 font-extrabold text-orange-950 whitespace-nowrap text-[11px] bg-orange-200 border-r border-orange-300 text-center">Deshidratado kg</th>
+
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Bulk 3,0 kg</th>
               <th className="px-2 py-2.5 font-semibold text-sky-900 whitespace-nowrap text-[11px] bg-sky-50 border-r border-sky-200 text-center">Rejillas 3,6 kg</th>
 
@@ -363,7 +372,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
           <tbody>
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={16} className="py-12 text-center text-gray-400">
+                <td colSpan={17} className="py-12 text-center text-gray-400">
                   No hay registros disponibles para mostrar en el consolidado.
                 </td>
               </tr>
@@ -371,6 +380,7 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
               filtered.map((r: any, idx: number) => {
                 const c = computeRecord(r);
                 const procKg = num(r.procesadoKg);
+                const deshidratadoKg = getDeshidratadoKg(r, c);
                 const cajas3 = getBoxCountByWeight(r, 3.0);
                 const cajas36 = getBoxCountByWeight(r, 3.6);
                 const pctExp = procKg > 0 ? (c.embaladoKg / procKg) * 100 : 0;
@@ -383,18 +393,19 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                     <td className={tdCls}>{formatDate(r.fechaRecepcion)}</td>
                     <td className={tdCls}>{formatDate(r.fechaProduccion)}</td>
                     <td className={tdCls}>{r.nProceso}</td>
-                    
+
                     <td className="px-2.5 py-2 font-extrabold text-sky-950 bg-sky-100 whitespace-nowrap text-[11px] border-r border-sky-200 text-center">
                       {r.guiaRecepcion || '—'}
                     </td>
-                    
+
                     <td className={tdNum}>{fmtKg(num(r.recepcionKg))}</td>
                     <td className={`${tdCls} font-bold text-gray-800`}>{r.variedad}</td>
                     <td className={tdNum}>{fmtKg(procKg)}</td>
-                    
+
                     <td className={`${tdNum} font-bold text-emerald-950 bg-emerald-100/80 border-r border-emerald-200`}>{fmtKg(c.embaladoKg)}</td>
                     <td className={`${tdNum} font-bold text-rose-950 bg-rose-100/80 border-r border-rose-200`}>{fmtKg(num(r.mermaKg))}</td>
-                    
+                    <td className={`${tdNum} font-bold text-orange-950 bg-orange-100/80 border-r border-orange-200`}>{fmtKg(deshidratadoKg)}</td>
+
                     <td className={`${tdNum} font-bold text-sky-800 bg-sky-50/25`}>
                       {fmtBoxes(cajas3)}
                     </td>
@@ -404,13 +415,13 @@ export const ConsolidadoProcesosView: React.FC<Props> = ({ records }) => {
                     </td>
 
                     <td className={`${tdNum} font-extrabold text-amber-950 bg-amber-100/80 border-r border-amber-200`}>{pctExp.toFixed(1)}%</td>
-                    
+
                     <td className={`${tdCls} text-slate-600 max-w-[180px] truncate relative group cursor-pointer`}>
                       {r.observaciones ? (
                         <div className="flex items-center gap-1.5">
                           <MessageSquare className="h-3 w-3 text-amber-600 shrink-0" />
                           <span className="truncate">{r.observaciones}</span>
-                          
+
                           <div className="absolute right-0 bottom-full mb-2 hidden group-hover:block z-50 w-72 p-3.5 bg-slate-900 text-white text-left text-xs rounded-xl shadow-2xl border border-slate-700 leading-normal">
                             <p className="font-bold text-amber-400 mb-1 flex items-center gap-1.5">
                               <MessageSquare className="h-3.5 w-3.5" /> Detalle de Observación:
