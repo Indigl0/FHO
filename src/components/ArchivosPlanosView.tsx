@@ -5,16 +5,32 @@ interface PalletItem {
   id: string;
   nPallet: string;
   cantidadCajas: number | '';
+  accion?: 'A' | 'M' | 'E';
+  solicitudInspeccion?: string;
+  codigoPais?: string;
+  fechaInspeccion?: string;
+  finInfo?: string;
+}
+
+type TipoFormato = 'INS' | 'INT' | 'REP' | 'DET' | 'DES';
+
+function soloDigitos(valor: string, len: number): string {
+  const limpio = String(valor || '').replace(/[^0-9]/g, '0');
+  return limpio.padStart(len, '0').slice(-len);
 }
 
 export default function ArchivosPlanosView() {
-  const [tipoFormato, setTipoFormato] = useState<'INS' | 'DES'>('INS');
+  const [tipoFormato, setTipoFormato] = useState<TipoFormato>('INS');
   const [nSolicitud, setNSolicitud] = useState('');
   const [codigoEspecie] = useState('10314200'); // Fijo por regla SAG (8 dígitos)
   const [establecimiento] = useState('0984'); // Fijo por regla SAG (4 dígitos)
-  
+
   const [codigoPais1, setCodigoPais1] = useState('520');
   const [codigoPais2, setCodigoPais2] = useState('000');
+
+  // Campos adicionales para INT, REP y DET según D-PA-EA-021
+  const [establecimiento3, setEstablecimiento3] = useState('098');
+  const [correlativoDoc, setCorrelativoDoc] = useState('');
 
   const [fecha, setFecha] = useState(() => {
     const now = new Date();
@@ -25,7 +41,16 @@ export default function ArchivosPlanosView() {
   });
 
   const [pallets, setPallets] = useState<PalletItem[]>([
-    { id: '1', nPallet: '', cantidadCajas: '' }
+    {
+      id: '1',
+      nPallet: '',
+      cantidadCajas: '',
+      accion: 'A',
+      solicitudInspeccion: '',
+      codigoPais: '520',
+      fechaInspeccion: '',
+      finInfo: '00',
+    },
   ]);
 
   const [successMsg, setSuccessMsg] = useState('');
@@ -33,7 +58,19 @@ export default function ArchivosPlanosView() {
   const [invalidField, setInvalidField] = useState<string | null>(null);
 
   const handleAddPallet = () => {
-    setPallets([...pallets, { id: Date.now().toString(), nPallet: '', cantidadCajas: '' }]);
+    setPallets([
+      ...pallets,
+      {
+        id: Date.now().toString(),
+        nPallet: '',
+        cantidadCajas: '',
+        accion: 'A',
+        solicitudInspeccion: nSolicitud,
+        codigoPais: codigoPais1,
+        fechaInspeccion: fecha,
+        finInfo: '00',
+      },
+    ]);
   };
 
   const handleRemovePallet = (id: string) => {
@@ -41,10 +78,8 @@ export default function ArchivosPlanosView() {
     setPallets(pallets.filter((p) => p.id !== id));
   };
 
-  const handlePalletChange = (id: string, field: 'nPallet' | 'cantidadCajas', value: any) => {
-    setPallets(
-      pallets.map((p) => (p.id === id ? { ...p, [field]: value } : p))
-    );
+  const handlePalletChange = (id: string, field: keyof PalletItem, value: any) => {
+    setPallets(pallets.map((p) => (p.id === id ? { ...p, [field]: value } : p)));
   };
 
   const generarArchivoPlano = () => {
@@ -52,29 +87,50 @@ export default function ArchivosPlanosView() {
     setSuccessMsg('');
     setInvalidField(null);
 
-    if (!nSolicitud.trim()) {
-      setErrorMsg('El campo N° Solicitud (ISV) es obligatorio.');
-      setInvalidField('nSolicitud');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (!codigoPais1.trim() || codigoPais1.length !== 3) {
-      setErrorMsg('El Código País Destino (1) debe tener exactamente 3 dígitos.');
-      setInvalidField('pais1');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (tipoFormato === 'INS' && (!codigoPais2.trim() || codigoPais2.length !== 3)) {
-      setErrorMsg('El Código País Destino (2) debe tener exactamente 3 dígitos.');
-      setInvalidField('pais2');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
-    }
-    if (!fecha.trim() || fecha.length !== 8) {
-      setErrorMsg('La Fecha debe tener el formato AAAAMMDD (8 dígitos).');
-      setInvalidField('fecha');
-      window.scrollTo({ top: 0, behavior: 'smooth' });
-      return;
+    if (tipoFormato === 'INS' || tipoFormato === 'DES') {
+      if (!nSolicitud.trim()) {
+        setErrorMsg('El campo N° Solicitud (ISV) es obligatorio.');
+        setInvalidField('nSolicitud');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (!codigoPais1.trim() || codigoPais1.length !== 3) {
+        setErrorMsg('El Código País Destino (1) debe tener exactamente 3 dígitos.');
+        setInvalidField('pais1');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (tipoFormato === 'INS' && (!codigoPais2.trim() || codigoPais2.length !== 3)) {
+        setErrorMsg('El Código País Destino (2) debe tener exactamente 3 dígitos.');
+        setInvalidField('pais2');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (!fecha.trim() || fecha.length !== 8) {
+        setErrorMsg('La Fecha debe tener el formato AAAAMMDD (8 dígitos).');
+        setInvalidField('fecha');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+    } else {
+      if (!correlativoDoc.trim()) {
+        setErrorMsg(
+          tipoFormato === 'INT'
+            ? 'El N° Planilla / Correlativo Interplanta (5 dígitos) es obligatorio.'
+            : tipoFormato === 'REP'
+            ? 'El Número de Repaletizaje es obligatorio.'
+            : 'El Correlativo de Anulación (5 dígitos) es obligatorio.'
+        );
+        setInvalidField('correlativoDoc');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
+      if (tipoFormato === 'INT' && (!fecha.trim() || fecha.length !== 8)) {
+        setErrorMsg('La Fecha debe tener el formato AAAAMMDD (8 dígitos).');
+        setInvalidField('fecha');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        return;
+      }
     }
 
     for (let i = 0; i < pallets.length; i++) {
@@ -85,11 +141,19 @@ export default function ArchivosPlanosView() {
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
       }
-      if (p.cantidadCajas === '' || Number(p.cantidadCajas) <= 0) {
+      if (tipoFormato !== 'DET' && (p.cantidadCajas === '' || Number(p.cantidadCajas) <= 0)) {
         setErrorMsg(`El Pallet #${i + 1} (${p.nPallet || 'Sin Folio'}) debe tener una Cantidad de Cajas válida mayor a 0.`);
         setInvalidField(`pallet-cajas-${p.id}`);
         window.scrollTo({ top: 0, behavior: 'smooth' });
         return;
+      }
+      if (tipoFormato === 'REP') {
+        if (!p.fechaInspeccion || p.fechaInspeccion.trim().length !== 8) {
+          setErrorMsg(`El Pallet #${i + 1} requiere Fecha de Inspección en formato AAAAMMDD (8 dígitos).`);
+          setInvalidField(`pallet-fecha-${p.id}`);
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+          return;
+        }
       }
     }
 
@@ -111,8 +175,7 @@ export default function ArchivosPlanosView() {
         const cajas4 = String(p.cantidadCajas || 0).padStart(4, '0');
         lineas.push(`${folio10}${cajas4}`);
       });
-
-    } else {
+    } else if (tipoFormato === 'DES') {
       const estab4 = establecimiento.padStart(4, '0');
       const p1_3 = codigoPais1.padStart(3, '0');
       const fch8 = fecha.padStart(8, '0');
@@ -125,6 +188,50 @@ export default function ArchivosPlanosView() {
         const cajas4 = String(p.cantidadCajas || 0).padStart(4, '0');
         lineas.push(`${folio10}${cajas4}${esp8}`);
       });
+    } else if (tipoFormato === 'INT') {
+      // Encabezado INT: Establecimiento sin región (3) + Correlativo interplanta (5) + Cantidad pallets (4)
+      const estab3 = soloDigitos(establecimiento3, 3);
+      const corr5 = soloDigitos(correlativoDoc, 5);
+      lineas.push(`${estab3}${corr5}${totalPalletsStr}`);
+
+      // Detalle INT: Folio pallet (10) + Número cajas (4) + Código especie (8) + Código país (3) + Fecha aaaammdd (8)
+      const esp8 = soloDigitos(codigoEspecie, 8);
+      const pais3 = soloDigitos(codigoPais1, 3);
+      const fch8 = soloDigitos(fecha, 8);
+      pallets.forEach((p) => {
+        const folio10 = soloDigitos(p.nPallet, 10);
+        const cajas4 = soloDigitos(String(p.cantidadCajas || 0), 4);
+        lineas.push(`${folio10}${cajas4}${esp8}${pais3}${fch8}`);
+      });
+    } else if (tipoFormato === 'REP') {
+      // Encabezado REP: Establecimiento sin región (4) + Número repaletizaje (4)
+      const estab4 = soloDigitos(establecimiento, 4);
+      const rep4 = soloDigitos(correlativoDoc, 4);
+      lineas.push(`${estab4}${rep4}`);
+
+      // Detalle REP: Acción A/M/E (1) + Solicitud inspección (5) + Folio pallet (10) + Cajas (4) + Especie (8) + País (3) + Fecha inspec aaaammdd (8) + Fin info (2)
+      const esp8 = soloDigitos(codigoEspecie, 8);
+      pallets.forEach((p) => {
+        const acc1 = (p.accion || 'A') as 'A' | 'M' | 'E';
+        const sol5 = soloDigitos(p.solicitudInspeccion || nSolicitud || '0', 5);
+        const folio10 = soloDigitos(p.nPallet, 10);
+        const cajas4 = soloDigitos(String(p.cantidadCajas || 0), 4);
+        const pais3 = soloDigitos(p.codigoPais || codigoPais1 || '0', 3);
+        const fchIns8 = soloDigitos(p.fechaInspeccion || fecha, 8);
+        const fin2 = soloDigitos(p.finInfo || '00', 2);
+        lineas.push(`${acc1}${sol5}${folio10}${cajas4}${esp8}${pais3}${fchIns8}${fin2}`);
+      });
+    } else if (tipoFormato === 'DET') {
+      // Encabezado DET: Correlativo anulación (5) + Establecimiento sin región (4) + Cantidad pallets anulados (4)
+      const corr5 = soloDigitos(correlativoDoc, 5);
+      const estab4 = soloDigitos(establecimiento, 4);
+      lineas.push(`${corr5}${estab4}${totalPalletsStr}`);
+
+      // Detalle DET: Folio pallet (10)
+      pallets.forEach((p) => {
+        const folio10 = soloDigitos(p.nPallet, 10);
+        lineas.push(`${folio10}`);
+      });
     }
 
     lineas.push('&&');
@@ -132,8 +239,10 @@ export default function ArchivosPlanosView() {
     const contenidoFinal = lineas.join('\r\n') + '\r\n';
 
     const extension = tipoFormato.toUpperCase();
-    const nombreArchivo = `${establecimiento}${nSolicitud.padStart(5, '0')}.${extension}`;
-    
+    const prefijoEstab = tipoFormato === 'INT' ? soloDigitos(establecimiento3, 3) : soloDigitos(establecimiento, 4);
+    const idArchivo5 = soloDigitos(tipoFormato === 'INS' || tipoFormato === 'DES' ? nSolicitud : correlativoDoc, 5);
+    const nombreArchivo = `${prefijoEstab}${idArchivo5}.${extension}`;
+
     const blob = new Blob([contenidoFinal], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -145,7 +254,7 @@ export default function ArchivosPlanosView() {
     URL.revokeObjectURL(url);
 
     setSuccessMsg(`¡Archivo ${nombreArchivo} generado y descargado con éxito con formato estricto SAG!`);
-    window.scrollTo({ top: 0, behavior: 'smooth' }); // Corregido aquí
+    window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => setSuccessMsg(''), 5000);
   };
 
@@ -159,7 +268,7 @@ export default function ArchivosPlanosView() {
           Generador de Archivos Planos SAG
         </h2>
         <p className="text-xs font-medium text-slate-500 max-w-lg">
-          Confección de archivos de ancho fijo sin delimitadores para Inspección y Despacho.
+          Confección de archivos de ancho fijo sin delimitadores para Inspección, Interplanta, Repaletizaje, Anulaciones y Despacho.
         </p>
       </div>
 
@@ -180,14 +289,17 @@ export default function ArchivosPlanosView() {
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">1. Seleccione Formato</h3>
         <div className="flex items-center gap-4">
-          <div className="w-full max-w-xs">
+          <div className="w-full max-w-md">
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">Formato de Archivo</label>
             <select
               className="w-full rounded-xl border border-gray-300 p-2.5 text-xs font-semibold outline-none focus:border-blue-500 bg-white shadow-sm"
               value={tipoFormato}
-              onChange={(e) => setTipoFormato(e.target.value as 'INS' | 'DES')}
+              onChange={(e) => setTipoFormato(e.target.value as TipoFormato)}
             >
               <option value="INS">Inspección, Reinspección o Fumigación (.INS)</option>
+              <option value="INT">Despacho Interplanta y Devoluciones (.INT)</option>
+              <option value="REP">Repaletizaje (.REP)</option>
+              <option value="DET">Anulaciones (.DET)</option>
               <option value="DES">Despacho (.DES)</option>
             </select>
           </div>
@@ -198,72 +310,147 @@ export default function ArchivosPlanosView() {
         <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">2. Datos de Encabezado</h3>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">N° Establecimiento (4 dígitos)</label>
-            <input type="text" value={establecimiento} disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed" />
-          </div>
-          <div>
             <label className="block text-[11px] font-semibold text-gray-600 mb-1">
-              {tipoFormato === 'INS' ? 'N° Solicitud / SIF (5 dígitos) *' : 'N° Planilla Despacho (5 dígitos) *'}
+              {tipoFormato === 'INT' ? 'N° Establecimiento (3 dígitos)' : 'N° Establecimiento (4 dígitos)'}
             </label>
-            <input
-              type="text"
-              maxLength={5}
-              placeholder="Ej: 00001"
-              value={nSolicitud}
-              onChange={(e) => setNSolicitud(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${invalidField === 'nSolicitud' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
-            />
-          </div>
-          <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código de Especie</label>
-            <input type="text" value={codigoEspecie} disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed" />
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
-          <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (1) *</label>
-            <input
-              type="text"
-              maxLength={3}
-              value={codigoPais1}
-              onChange={(e) => setCodigoPais1(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais1' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
-            />
-          </div>
-          {tipoFormato === 'INS' ? (
-            <div>
-              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
+            {tipoFormato === 'INT' ? (
               <input
                 type="text"
                 maxLength={3}
-                value={codigoPais2}
-                onChange={(e) => setCodigoPais2(e.target.value)}
-                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${invalidField === 'pais2' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900' : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'}`}
+                value={establecimiento3}
+                onChange={(e) => setEstablecimiento3(e.target.value)}
+                className="w-full rounded-xl border border-gray-300 bg-white p-2.5 text-xs font-bold text-gray-800 outline-none focus:border-blue-500"
+              />
+            ) : (
+              <input
+                type="text"
+                value={establecimiento}
+                disabled
+                className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed"
+              />
+            )}
+          </div>
+
+          {tipoFormato === 'INS' || tipoFormato === 'DES' ? (
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                {tipoFormato === 'INS' ? 'N° Solicitud / SIF (5 dígitos) *' : 'N° Planilla Despacho (5 dígitos) *'}
+              </label>
+              <input
+                type="text"
+                maxLength={5}
+                placeholder="Ej: 00001"
+                value={nSolicitud}
+                onChange={(e) => setNSolicitud(e.target.value)}
+                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
+                  invalidField === 'nSolicitud'
+                    ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                    : 'border-gray-300 focus:border-blue-500'
+                }`}
               />
             </div>
           ) : (
             <div>
-              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2)</label>
-              <input type="text" value="No aplica en DES" disabled className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-400 cursor-not-allowed" />
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">
+                {tipoFormato === 'INT'
+                  ? 'N° Planilla / Correlativo Interplanta (5 dígitos) *'
+                  : tipoFormato === 'REP'
+                  ? 'Número de Repaletizaje (4 dígitos encab. / 5 arch.) *'
+                  : 'Correlativo de Anulación (5 dígitos) *'}
+              </label>
+              <input
+                type="text"
+                maxLength={5}
+                placeholder="Ej: 00038"
+                value={correlativoDoc}
+                onChange={(e) => setCorrelativoDoc(e.target.value)}
+                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
+                  invalidField === 'correlativoDoc'
+                    ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                    : 'border-gray-300 focus:border-blue-500'
+                }`}
+              />
             </div>
           )}
+
           <div>
-            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD) *</label>
+            <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código de Especie</label>
             <input
               type="text"
-              maxLength={8}
-              value={fecha}
-              onChange={(e) => setFecha(e.target.value)}
-              className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${invalidField === 'fecha' ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
+              value={codigoEspecie}
+              disabled
+              className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-600 cursor-not-allowed"
             />
           </div>
         </div>
+
+        {(tipoFormato === 'INS' || tipoFormato === 'DES' || tipoFormato === 'INT') && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-2">
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (1) *</label>
+              <input
+                type="text"
+                maxLength={3}
+                value={codigoPais1}
+                onChange={(e) => setCodigoPais1(e.target.value)}
+                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
+                  invalidField === 'pais1'
+                    ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900'
+                    : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
+                }`}
+              />
+            </div>
+
+            {tipoFormato === 'INS' ? (
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2) *</label>
+                <input
+                  type="text"
+                  maxLength={3}
+                  value={codigoPais2}
+                  onChange={(e) => setCodigoPais2(e.target.value)}
+                  className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none ${
+                    invalidField === 'pais2'
+                      ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20 text-rose-900'
+                      : 'border-blue-300 bg-blue-50/50 text-blue-900 focus:border-blue-500'
+                  }`}
+                />
+              </div>
+            ) : (
+              <div>
+                <label className="block text-[11px] font-semibold text-gray-600 mb-1">Código País Destino (2)</label>
+                <input
+                  type="text"
+                  value={`No aplica en ${tipoFormato}`}
+                  disabled
+                  className="w-full rounded-xl border border-gray-200 bg-gray-50 p-2.5 text-xs font-bold text-gray-400 cursor-not-allowed"
+                />
+              </div>
+            )}
+
+            <div>
+              <label className="block text-[11px] font-semibold text-gray-600 mb-1">Fecha (AAAAMMDD) *</label>
+              <input
+                type="text"
+                maxLength={8}
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                className={`w-full rounded-xl border p-2.5 text-xs font-bold outline-none bg-white ${
+                  invalidField === 'fecha'
+                    ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                    : 'border-gray-300 focus:border-blue-500'
+                }`}
+              />
+            </div>
+          </div>
+        )}
       </div>
 
       <div className="bg-white rounded-2xl border border-gray-200 p-6 shadow-sm space-y-4">
         <div className="flex items-center justify-between">
-          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">3. Detalle de Pallets (Estructura Interna)</h3>
+          <h3 className="text-xs font-bold uppercase tracking-wider text-slate-400">
+            3. {tipoFormato === 'DET' ? 'Pallets Anulados (Estructura Interna)' : 'Detalle de Pallets (Estructura Interna)'}
+          </h3>
           <button
             onClick={handleAddPallet}
             className="flex items-center gap-1.5 rounded-xl bg-emerald-600 px-3.5 py-2 text-xs font-semibold text-white shadow-sm hover:bg-emerald-700 transition"
@@ -276,11 +463,42 @@ export default function ArchivosPlanosView() {
           {pallets.map((p, idx) => {
             const isFolioInvalid = invalidField === `pallet-folio-${p.id}`;
             const isCajasInvalid = invalidField === `pallet-cajas-${p.id}`;
+            const isFechaInsInvalid = invalidField === `pallet-fecha-${p.id}`;
 
             return (
-              <div key={p.id} className="flex items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
+              <div key={p.id} className="flex flex-wrap items-center gap-3 bg-gray-50/70 p-3 rounded-xl border border-gray-200">
                 <span className="text-xs font-bold text-gray-500 w-6">#{idx + 1}</span>
-                <div className="flex-1">
+
+                {tipoFormato === 'REP' && (
+                  <div className="w-24">
+                    <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Acción *</label>
+                    <select
+                      value={p.accion || 'A'}
+                      onChange={(e) => handlePalletChange(p.id, 'accion', e.target.value as 'A' | 'M' | 'E')}
+                      className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
+                    >
+                      <option value="A">A (Agregar)</option>
+                      <option value="M">M (Modificar)</option>
+                      <option value="E">E (Eliminar)</option>
+                    </select>
+                  </div>
+                )}
+
+                {tipoFormato === 'REP' && (
+                  <div className="w-28">
+                    <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Sol. Insp. (5)</label>
+                    <input
+                      type="text"
+                      maxLength={5}
+                      placeholder="00001"
+                      value={p.solicitudInspeccion ?? nSolicitud}
+                      onChange={(e) => handlePalletChange(p.id, 'solicitudInspeccion', e.target.value)}
+                      className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
+                    />
+                  </div>
+                )}
+
+                <div className="flex-1 min-w-[140px]">
                   <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Folio del Pallet (10 dígitos) *</label>
                   <input
                     type="text"
@@ -288,20 +506,74 @@ export default function ArchivosPlanosView() {
                     placeholder="Ej: 0000011111"
                     value={p.nPallet}
                     onChange={(e) => handlePalletChange(p.id, 'nPallet', e.target.value)}
-                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${isFolioInvalid ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
+                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
+                      isFolioInvalid
+                        ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                        : 'border-gray-300 focus:border-blue-500'
+                    }`}
                   />
                 </div>
-                <div className="w-36">
-                  <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
-                  <input
-                    type="number"
-                    min={1}
-                    placeholder="0"
-                    value={p.cantidadCajas}
-                    onChange={(e) => handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))}
-                    className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${isCajasInvalid ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20' : 'border-gray-300 focus:border-blue-500'}`}
-                  />
-                </div>
+
+                {tipoFormato !== 'DET' && (
+                  <div className="w-32">
+                    <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Cantidad de Cajas *</label>
+                    <input
+                      type="number"
+                      min={1}
+                      placeholder="0"
+                      value={p.cantidadCajas}
+                      onChange={(e) =>
+                        handlePalletChange(p.id, 'cantidadCajas', e.target.value === '' ? '' : Number(e.target.value))
+                      }
+                      className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
+                        isCajasInvalid
+                          ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                          : 'border-gray-300 focus:border-blue-500'
+                      }`}
+                    />
+                  </div>
+                )}
+
+                {tipoFormato === 'REP' && (
+                  <>
+                    <div className="w-24">
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">País (3)</label>
+                      <input
+                        type="text"
+                        maxLength={3}
+                        value={p.codigoPais ?? codigoPais1}
+                        onChange={(e) => handlePalletChange(p.id, 'codigoPais', e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
+                      />
+                    </div>
+                    <div className="w-32">
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">F. Insp. (AAAAMMDD) *</label>
+                      <input
+                        type="text"
+                        maxLength={8}
+                        placeholder="20100620"
+                        value={p.fechaInspeccion ?? fecha}
+                        onChange={(e) => handlePalletChange(p.id, 'fechaInspeccion', e.target.value)}
+                        className={`w-full rounded-lg border p-2 text-xs font-semibold bg-white outline-none ${
+                          isFechaInsInvalid
+                            ? 'border-rose-500 ring-2 ring-rose-100 bg-rose-50/20'
+                            : 'border-gray-300 focus:border-blue-500'
+                        }`}
+                      />
+                    </div>
+                    <div className="w-20">
+                      <label className="block text-[10px] font-semibold text-gray-500 mb-0.5">Fin (2)</label>
+                      <input
+                        type="text"
+                        maxLength={2}
+                        value={p.finInfo ?? '00'}
+                        onChange={(e) => handlePalletChange(p.id, 'finInfo', e.target.value)}
+                        className="w-full rounded-lg border border-gray-300 p-2 text-xs font-semibold bg-white outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  </>
+                )}
+
                 <button
                   onClick={() => handleRemovePallet(p.id)}
                   disabled={pallets.length === 1}
