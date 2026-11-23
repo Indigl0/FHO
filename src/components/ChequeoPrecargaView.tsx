@@ -44,9 +44,18 @@ function limpiarNombreChofer(raw: string): string {
 
 function limpiarCompaniaTransporte(raw: string): string {
   return raw
-    .replace(/\b(?:HLBU|HLCU|MSDU|MRKU|CMAU|TCNU|BEAU|FSCU|GAOU|SEGU)\d{6,7}(?:-\d)?\b/gi, '')
+    .replace(/\b(?:MWCU|HLBU|HLCU|MSDU|MRKU|CMAU|TCNU|BEAU|FSCU|GAOU|SEGU)\s*\d{6,7}(?:-\d)?\b/gi, '')
+    .replace(/\bML-[A-Z0-9-]+\b/gi, '')
     .replace(/\bQ\d{5,7}\s+G\d[A-Z0-9]{6,10}\b/gi, '')
     .replace(/\b(?:Numero\s+de\s+Conten[td]or|Sello\s+Naviera|Sello\s+USDA-APHIS|Termografo|Referencia|Otro\s+Tramo|Patente)\b.*$/i, '')
+    .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
+    .replace(/\s{2,}/g, ' ')
+    .trim();
+}
+
+function limpiarDestino(raw: string): string {
+  return raw
+    .replace(/\b(?:Nave|Numero\s+de\s+Conten[td]or|Sello\s+Naviera|Sello\s+USDA-APHIS|Reserva|Termografo|Referencia)\b.*$/i, '')
     .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -55,14 +64,14 @@ function limpiarCompaniaTransporte(raw: string): string {
 function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const normalized = rawText.replace(/\s+/g, ' ').trim();
 
-  // 1. Número de guía ("Nº 25584" / "GUÍA_25584")
+  // 1. Número de guía ("Nº 25663" / "GUÍA_25663")
   const guiaMatch =
     normalized.match(/\bN[°ºo.]\s*(\d{4,8})\b/i) ||
     normalized.match(/\bGU[IÍ]A\s*(?:DE\s*DESPACHO)?\s*(?:ELECTR[OÓ]NICA)?\s*N[°ºo.]?\s*(\d{4,8})\b/i) ||
     fileName.match(/(\d{4,8})/);
   const numeroGuia = guiaMatch ? guiaMatch[1] : '';
 
-  // 2. Fecha ("21-11-2026" / "18-11-2026")
+  // 2. Fecha ("23-11-2026" / "18-11-2026")
   const fechaMatch = normalized.match(/\b(\d{2}[-/]\d{2}[-/]\d{4})\b/);
   const fecha = fechaMatch ? fechaMatch[1].replace(/\//g, '-') : '';
 
@@ -70,7 +79,7 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const horaMatch = normalized.match(/\bHora\s*:?\s*(\d{1,2}:\d{2}(?::\d{2})?)\b/i);
   const hora = horaMatch ? horaMatch[1] : '';
 
-  // 4. Patente camión y patente carro (ej. "JXJ818" / "JXJ820", "BYXL-11 / JP-4054")
+  // 4. Patente camión y patente carro (ej. "TT9064" / "JG9742", "JXJ818" / "JXJ820", "BYXL-11 / JP-4054")
   let patenteCamion = '';
   let patenteCarro = '';
   const dosPatentesMatch = normalized.match(
@@ -133,26 +142,31 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     }
   }
 
-  // 6. Destino ("Puerto de Destino: ROTTERDAM") y Compañía de Transporte ("Nave: COSCO SHIPPING SONE 624236")
+  // 6. Destino ("Puerto de Destino: PHILADELPHIA") y Compañía de Transporte ("Nave: MAERSK BALI 647N")
   let destino = '';
   let companiaTransporte = '';
 
   const puertoDestinoEtiquetaMatch = normalized.match(
-    /Puerto\s+de\s+Destino\s*:?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,35}?)(?=\s+(?:Nave\s*:?|Numero\s+de\s+Conten[td]or\s*:?|Sello\s+Naviera\s*:?|Reserva\s*:?|$))/i
+    /Puerto\s+de\s+Destino\s*:?\s*([A-ZÁÉÍÓÚÑ][A-ZÁÉÍÓÚÑ\s\-]{1,40}?)(?=\s+(?:Nave\s*:?|Numero\s+de\s+Conten[td]or\s*:?|Sello\s+Naviera\s*:?|Reserva\s*:?|$))/i
   );
   if (puertoDestinoEtiquetaMatch) {
-    destino = puertoDestinoEtiquetaMatch[1].replace(/^[:.\-\s]+|[:.\-\s]+$/g, '').trim();
+    destino = limpiarDestino(puertoDestinoEtiquetaMatch[1]);
   }
 
   const naveEtiquetaMatch = normalized.match(
-    /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,45}?)(?=\s+(?:Numero\s+de\s+Conten[td]or\s*:?|N[°º]?\s*Contenedor\s*:?|Sello\s+Naviera\s*:?|Sello\s+USDA-APHIS\s*:?|Reserva\s*:?|Termografo\s*:?|Referencia\s*:?|Otro\s+Tramo\s*:?|Patente\s*:?|(?:HLBU|HLCU|MSDU|MRKU|CMAU|TCNU)\d{6,7}|$))/i
+    /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,50}?)(?=\s+(?:Numero\s+de\s+Conten[td]or\s*:?|N[°º]?\s*Contenedor\s*:?|Sello\s+Naviera\s*:?|Sello\s+USDA-APHIS\s*:?|Reserva\s*:?|Termografo\s*:?|Referencia\s*:?|Otro\s+Tramo\s*:?|Patente\s*:?|ML-[A-Z0-9-]+|(?:MWCU|HLBU|HLCU|MSDU|MRKU|CMAU|TCNU)\s*\d{6,7}|$))/i
   );
   if (naveEtiquetaMatch) {
     companiaTransporte = limpiarCompaniaTransporte(naveEtiquetaMatch[1]);
   }
 
-  if (!destino && /\bROTTERDAM\b/i.test(normalized)) {
-    destino = 'ROTTERDAM';
+  if (!destino) {
+    const destinoConocidoMatch = normalized.match(
+      /\b(PHILADELPHIA|ROTTERDAM|LOS ANGELES|NEW YORK|SHANGHAI|BUSAN|TOKYO|HONG KONG)\b/i
+    );
+    if (destinoConocidoMatch) {
+      destino = destinoConocidoMatch[1].toUpperCase();
+    }
   }
 
   if (!destino || !companiaTransporte) {
@@ -161,15 +175,15 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     );
 
     if (filaConPuertoMatch) {
-      if (!destino) destino = filaConPuertoMatch[1].trim();
+      if (!destino) destino = limpiarDestino(filaConPuertoMatch[1]);
       if (!companiaTransporte) companiaTransporte = limpiarCompaniaTransporte(filaConPuertoMatch[2]);
     } else {
       const bloqueExportMatch = normalized.match(
-        /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
+        /LOS PRECIOS SON REFERENCIALES\s+[\d.]+\s+[\d.]+\s+[A-Z0-9ÁÉÍÓÚÑ\s.&-]+?\s+(PHILADELPHIA|ROTTERDAM|[A-ZÁÉÍÓÚÑ]{4,25})\s+([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s-]{2,35}?)\s+(?:MWCU|MSDU|[A-Z]{4}\d{7}|FX\d+|EBKG|\d{6,})/
       );
 
       if (bloqueExportMatch) {
-        if (!destino) destino = bloqueExportMatch[1].trim();
+        if (!destino) destino = limpiarDestino(bloqueExportMatch[1]);
         if (!companiaTransporte) companiaTransporte = limpiarCompaniaTransporte(bloqueExportMatch[2]);
       }
     }
