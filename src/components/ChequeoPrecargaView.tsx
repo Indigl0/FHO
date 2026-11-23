@@ -44,10 +44,17 @@ function limpiarNombreChofer(raw: string): string {
 
 function limpiarCompaniaTransporte(raw: string): string {
   return raw
-    .replace(/\b(?:MWCU|HLBU|HLCU|MSDU|MRKU|CMAU|TCNU|BEAU|FSCU|GAOU|SEGU)\s*\d{6,7}(?:-\d)?\b/gi, '')
+    // Elimina códigos de contenedor (ej. MWCU 587041-0, HLBU933055-4, MSDU1234567)
+    .replace(/\b[A-Z]{4}\s*\d{6,7}(?:-\d)?\b/gi, '')
+    // Elimina sellos tipo ML-CL6739068
     .replace(/\bML-[A-Z0-9-]+\b/gi, '')
+    // Elimina códigos de termógrafos
     .replace(/\bQ\d{5,7}\s+G\d[A-Z0-9]{6,10}\b/gi, '')
-    .replace(/\b(?:Numero\s+de\s+Conten[td]or|Sello\s+Naviera|Sello\s+USDA-APHIS|Termografo|Referencia|Otro\s+Tramo|Patente)\b.*$/i, '')
+    // Corta desde cualquier etiqueta o campo posterior que no pertenece a la nave
+    .replace(
+      /\b(?:Numero\s+de\s+Conten[td]or|N[°º]?\s*Contenedor|Sello\s+Naviera|Sello\s+USDA-APHIS|Reserva|Termografo|Referencia|Otro\s+Tramo|Patente(?:\s+Carro)?|RUT|Folio|Timbre)\b.*$/i,
+      ''
+    )
     .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -55,7 +62,10 @@ function limpiarCompaniaTransporte(raw: string): string {
 
 function limpiarDestino(raw: string): string {
   return raw
-    .replace(/\b(?:Nave|Numero\s+de\s+Conten[td]or|Sello\s+Naviera|Sello\s+USDA-APHIS|Reserva|Termografo|Referencia)\b.*$/i, '')
+    .replace(
+      /\b(?:Nave|Numero\s+de\s+Conten[td]or|N[°º]?\s*Contenedor|Sello\s+Naviera|Sello\s+USDA-APHIS|Reserva|Termografo|Referencia|Otro\s+Tramo|Patente(?:\s+Carro)?)\b.*$/i,
+      ''
+    )
     .replace(/^[:.\-\s]+|[:.\-\s]+$/g, '')
     .replace(/\s{2,}/g, ' ')
     .trim();
@@ -64,7 +74,7 @@ function limpiarDestino(raw: string): string {
 function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const normalized = rawText.replace(/\s+/g, ' ').trim();
 
-  // 1. Número de guía ("Nº 25663" / "GUÍA_25663")
+  // 1. Número de guía ("Nº 25663" / "GUÍA_25584")
   const guiaMatch =
     normalized.match(/\bN[°ºo.]\s*(\d{4,8})\b/i) ||
     normalized.match(/\bGU[IÍ]A\s*(?:DE\s*DESPACHO)?\s*(?:ELECTR[OÓ]NICA)?\s*N[°ºo.]?\s*(\d{4,8})\b/i) ||
@@ -79,7 +89,7 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
   const horaMatch = normalized.match(/\bHora\s*:?\s*(\d{1,2}:\d{2}(?::\d{2})?)\b/i);
   const hora = horaMatch ? horaMatch[1] : '';
 
-  // 4. Patente camión y patente carro (ej. "TT9064" / "JG9742", "JXJ818" / "JXJ820", "BYXL-11 / JP-4054")
+  // 4. Patente camión y patente carro
   let patenteCamion = '';
   let patenteCarro = '';
   const dosPatentesMatch = normalized.match(
@@ -110,7 +120,7 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     }
   }
 
-  // 5. Nombre del chofer ("Otro Tramo: VICTOR ALIBIO" o etiquetas previas)
+  // 5. Nombre del chofer
   let nombreChofer = '';
   const otroTramoMatch = normalized.match(
     /\bOtro\s+Tramo\s*:?\s*([A-ZÁÉÍÓÚÑ]{2,}(?:\s+[A-ZÁÉÍÓÚÑ]{2,}){1,4})(?=\s+(?:Patente(?:\s+Carro)?|RUT|Folio|Timbre|Total|NETO|IVA|\d{1,2}\.?\d{3}|$))/i
@@ -142,7 +152,7 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     }
   }
 
-  // 6. Destino ("Puerto de Destino: PHILADELPHIA") y Compañía de Transporte ("Nave: MAERSK BALI 647N")
+  // 6. Destino y Compañía de Transporte (Nave)
   let destino = '';
   let companiaTransporte = '';
 
@@ -153,11 +163,19 @@ function parseGuiaText(rawText: string, fileName = ''): GuiaChequeoData {
     destino = limpiarDestino(puertoDestinoEtiquetaMatch[1]);
   }
 
-  const naveEtiquetaMatch = normalized.match(
-    /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,50}?)(?=\s+(?:Numero\s+de\s+Conten[td]or\s*:?|N[°º]?\s*Contenedor\s*:?|Sello\s+Naviera\s*:?|Sello\s+USDA-APHIS\s*:?|Reserva\s*:?|Termografo\s*:?|Referencia\s*:?|Otro\s+Tramo\s*:?|Patente\s*:?|ML-[A-Z0-9-]+|(?:MWCU|HLBU|HLCU|MSDU|MRKU|CMAU|TCNU)\s*\d{6,7}|$))/i
+  const naveConNombreMatch = normalized.match(
+    /\b((?:MAERSK|COSCO(?:\s+SHIPPING)?|MSC|CMA\s+CGM|HAPAG(?:-LLOYD)?|EVERGREEN|ONE|YANG\s+MING|PIL|ZIM)\s+[A-Z0-9ÁÉÍÓÚÑ\-_.\/]+(?:\s+[A-Z0-9ÁÉÍÓÚÑ\-_.\/]+){0,3}?)(?=\s+(?:Numero\s+de\s+Conten[td]or|N[°º]?\s*Contenedor|Sello|Reserva|Termografo|ML-[A-Z0-9-]+|[A-Z]{4}\s*\d{6,7}|$))/i
   );
-  if (naveEtiquetaMatch) {
-    companiaTransporte = limpiarCompaniaTransporte(naveEtiquetaMatch[1]);
+
+  if (naveConNombreMatch) {
+    companiaTransporte = limpiarCompaniaTransporte(naveConNombreMatch[1]);
+  } else {
+    const naveEtiquetaMatch = normalized.match(
+      /\bNave\s*:?\s*([A-Z0-9ÁÉÍÓÚÑ][A-Z0-9ÁÉÍÓÚÑ\s\-_.\/]{1,50}?)(?=\s+(?:Numero\s+de\s+Conten[td]or\s*:?|N[°º]?\s*Contenedor\s*:?|Sello\s+Naviera\s*:?|Sello\s+USDA-APHIS\s*:?|Reserva\s*:?|Termografo\s*:?|Referencia\s*:?|Otro\s+Tramo\s*:?|Patente\s*:?|ML-[A-Z0-9-]+|[A-Z]{4}\s*\d{6,7}|$))/i
+    );
+    if (naveEtiquetaMatch) {
+      companiaTransporte = limpiarCompaniaTransporte(naveEtiquetaMatch[1]);
+    }
   }
 
   if (!destino) {
